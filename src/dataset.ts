@@ -15,6 +15,7 @@ limitations under the License.
 
 import * as d3 from 'd3';
 
+
 /**
  * A two dimensional example: x and y coordinates with the label.
  */
@@ -130,6 +131,7 @@ export function regressGaussian(numSamples: number, noise: number):
     let label = getLabel(x + noiseX, y + noiseY);
     points.push({x, y, label});
   };
+    console.log(points);
   return points;
 }
 
@@ -148,8 +150,9 @@ export function classifySpiralData(numSamples: number, noise: number):
     }
   }
 
-  genSpiral(0, 1); // Positive examples.
-  genSpiral(Math.PI, -1); // Negative examples.
+    genSpiral(0, 1); // Positive examples.
+    genSpiral(Math.PI, -1); // Negative examples.
+
   return points;
 }
 
@@ -239,3 +242,4 @@ function dist(a: Point, b: Point): number {
   let dy = a.y - b.y;
   return Math.sqrt(dx * dx + dy * dy);
 }
+

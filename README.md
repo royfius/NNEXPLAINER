@@ -4,6 +4,14 @@ Deep playground is an interactive visualization of neural networks, written in
 TypeScript using d3.js. We use GitHub issues for tracking new requests and bugs.
 Your feedback is highly appreciated!
 
+# Modifications
+
+This fork includes the ability to load `.csv` datasets.
+
+Currently, `.csv` data must be normalized and have 3 unnamed columns, corresponding to X, Y and LABEL data.
+
+It is the third datatype of the regression mode.
+
 **If you'd like to contribute, be sure to review the [contribution guidelines](CONTRIBUTING.md).**
 
 ## Development

@@ -29,6 +29,8 @@ import {Example2D, shuffle} from "./dataset";
 import {AppendingLineChart} from "./linechart";
 import * as d3 from 'd3';
 
+import * as csvdataset from './csvdataset';
+
 let mainWidth;
 
 // More scrolling
@@ -175,6 +177,22 @@ let player = new Player();
 let lineChart = new AppendingLineChart(d3.select("#linechart"),
     ["#777", "black"]);
 
+
+
+export function loadDataset(newDataset) {
+
+    let regDataThumbnails = d3.selectAll("canvas[data-regDataset]");
+    state.regDataset = newDataset;
+    regDataThumbnails.classed("selected", false);
+    //d3.select(this).classed("selected", true);
+    generateData();
+    parametersChanged = true;
+    reset();
+
+}
+
+
+
 function makeGUI() {
   d3.select("#reset-button").on("click", () => {
     reset();
@@ -207,18 +225,18 @@ function makeGUI() {
   });
 
   let dataThumbnails = d3.selectAll("canvas[data-dataset]");
-  dataThumbnails.on("click", function() {
-    let newDataset = datasets[this.dataset.dataset];
-    if (newDataset === state.dataset) {
-      return; // No-op.
-    }
-    state.dataset =  newDataset;
-    dataThumbnails.classed("selected", false);
-    d3.select(this).classed("selected", true);
-    generateData();
-    parametersChanged = true;
-    reset();
-  });
+    dataThumbnails.on("click", function() {
+        let newDataset = datasets[this.dataset.dataset];
+        if (newDataset === state.dataset) {
+            return; // No-op.
+        }
+        state.dataset = newDataset;
+        dataThumbnails.classed("selected", false);
+        d3.select(this).classed("selected", true);
+        generateData();
+        parametersChanged = true;
+        reset();
+    });
 
   let datasetKey = getKeyFromValue(datasets, state.dataset);
   // Select the dataset according to the current state.
@@ -231,7 +249,9 @@ function makeGUI() {
     if (newDataset === state.regDataset) {
       return; // No-op.
     }
-    state.regDataset =  newDataset;
+
+
+    state.regDataset = newDataset;
     regDataThumbnails.classed("selected", false);
     d3.select(this).classed("selected", true);
     generateData();
@@ -1017,9 +1037,20 @@ function drawDatasetThumbnails() {
   if (state.problem === Problem.REGRESSION) {
     for (let regDataset in regDatasets) {
       let canvas: any =
-          document.querySelector(`canvas[data-regDataset=${regDataset}]`);
-      let dataGenerator = regDatasets[regDataset];
-      renderThumbnail(canvas, dataGenerator);
+            document.querySelector(`canvas[data-regDataset=${regDataset}]`);
+
+        // skip thumbnail for reg-csv;
+        if (regDataset == "reg-csv")
+        {
+            renderThumbnail(canvas, csvdataset.makeThumbnail);
+            
+           // renderThumbnail(canvas, regDatasets['reg-gauss']);
+        }
+        else
+        {
+            let dataGenerator = regDatasets[regDataset];
+            renderThumbnail(canvas, dataGenerator);
+        }
     }
   }
 }
@@ -1076,11 +1107,19 @@ function generateData(firstTime = false) {
       NUM_SAMPLES_REGRESS : NUM_SAMPLES_CLASSIFY;
   let generator = state.problem === Problem.CLASSIFICATION ?
       state.dataset : state.regDataset;
-  let data = generator(numSamples, state.noise / 100);
+    let data = generator(numSamples, state.noise / 100);
+
+
+      updateData(data);
+}
+
+export function updateData(data) {
+
   // Shuffle the data in-place.
   shuffle(data);
   // Split into train and test data.
-  let splitIndex = Math.floor(data.length * state.percTrainData / 100);
+    let splitIndex = Math.floor(data.length * state.percTrainData / 100);
+
   trainData = data.slice(0, splitIndex);
   testData = data.slice(splitIndex);
   heatMap.updatePoints(trainData);

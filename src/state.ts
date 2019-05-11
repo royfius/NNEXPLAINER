@@ -15,6 +15,7 @@ limitations under the License.
 
 import * as nn from "./nn";
 import * as dataset from "./dataset";
+import * as csvdataset from "./csvdataset";
 
 /** Suffix added to the state when storing if a control is hidden or not. */
 const HIDE_STATE_SUFFIX = "_hide";
@@ -45,7 +46,8 @@ export let datasets: {[key: string]: dataset.DataGenerator} = {
 /** A map between dataset names and functions that generate regression data. */
 export let regDatasets: {[key: string]: dataset.DataGenerator} = {
   "reg-plane": dataset.regressPlane,
-  "reg-gauss": dataset.regressGaussian
+    "reg-gauss": dataset.regressGaussian,
+    "reg-csv": csvdataset.loadCsv
 };
 
 export function getKeyFromValue(obj: any, value: any): string {
