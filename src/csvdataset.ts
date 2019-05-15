@@ -5,6 +5,27 @@ import * as CSV from 'csv-string';
 import * as playground from "./playground";
 
 
+function parse_csv_data(csvdata): dataset.Example2D [] {
+
+    let points: dataset.Example2D [] = [];
+
+    for (let i = 0; i < csvdata.length; i++) {
+
+        let p = [];
+        for (let j = 0; j < csvdata[i].length - 1; j++) {
+
+            let value = Number(parseFloat(csvdata[i][j]));
+            p.push(value);
+        }
+
+        let label = Number(parseFloat(csvdata[i][csvdata[i].length - 1]));
+        points.push({p, dim: csvdata[i].length - 1, label});
+    }
+
+    return points;
+}
+
+
 function read_csv_file() {
     const fileSelector = document.createElement("input");
     fileSelector.setAttribute("type", "file");
@@ -23,20 +44,11 @@ function read_csv_file() {
                 let res = reader.result;
 
                 let points: dataset.Example2D [] = [];
-                let data = CSV.parse(res);
-                for (let i = 0; i < data.length; i++)
-                {
+                let csvdata = CSV.parse(res);
 
-                    let x = Number(parseFloat(data[i][0]));
-                    let y = Number(parseFloat(data[i][1]));
-                    let label = Number(parseFloat(data[i][2]));
+                let csvpoints = parse_csv_data(csvdata);
 
-                    let nb = {x, y, label};
-                    points.push(nb);
-
-                }
-
-                playground.updateData(points);
+                playground.updateData(csvpoints);
             };
 
             reader.readAsText(file);
@@ -54,7 +66,7 @@ function read_csv_file() {
 export function loadCsv(numSamples: number, noise: number):
 dataset.Example2D[] {
 
-    let points: dataset.Example2D [] = [];
+    let points: dataset.Example2D [] = dataset.regressGaussian(numSamples, noise);
 
     console.log("numSamples: ", numSamples);
 
@@ -79,7 +91,7 @@ dataset.Example2D[] {
         let x = y ** 2 / 5 - 6;
 
 
-        points.push({x, y, label: 1});
+        points.push({p: [x, y], dim: 2, label: 1});
 
     }
 
@@ -88,7 +100,7 @@ dataset.Example2D[] {
         let y = -5 + i;
         let x = -( y ** 3) / 20;
 
-        points.push({x, y, label: -1});
+        points.push({p: [x, y], dim: 2, label: -1});
     }
 
     // letter V;
@@ -98,11 +110,7 @@ dataset.Example2D[] {
 
         x = x + 3;
 
-        points.push({
-            x: x,
-            y: y,
-            label: 1
-        });
+        points.push({p: [x, y], dim: 2, label: 1});
 
     }
 

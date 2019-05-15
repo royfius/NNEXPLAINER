@@ -60,11 +60,24 @@ enum HoverType {
 }
 
 interface InputFeature {
-  f: (x: number, y: number) => number;
+  f: (point: Example2D) => number;
   label?: string;
 }
 
-let INPUTS: {[name: string]: InputFeature} = {
+function loadFeatures(nbdim: number): {[name: string]: InputFeature} {
+
+    let INPUTS = {};
+
+    for (let i = 0; i < nbdim; i++) {
+        let inputName = "X_" + (i + 1).toString();
+        INPUTS[inputName] = {f: (dataset) => dataset.p[Number(i)], label: inputName};
+    }
+
+    return INPUTS;
+}
+
+/*
+let olddINPUTS: {[name: string]: InputFeature} = {
   "x": {f: (x, y) => x, label: "X_1"},
   "y": {f: (x, y) => y, label: "X_2"},
   "xSquared": {f: (x, y) => x * x, label: "X_1^2"},
@@ -73,6 +86,8 @@ let INPUTS: {[name: string]: InputFeature} = {
   "sinX": {f: (x, y) => Math.sin(x), label: "sin(X_1)"},
   "sinY": {f: (x, y) => Math.sin(y), label: "sin(X_2)"},
 };
+
+*/
 
 let HIDABLE_CONTROLS = [
   ["Show test data", "showTestData"],
@@ -145,6 +160,12 @@ class Player {
 
 let state = State.deserializeState();
 
+let trainData: Example2D[] = [];
+let testData: Example2D[] = [];
+let network: nn.Node[][] = null;
+
+let INPUTS = loadFeatures(2);
+
 // Filter out inputs that are hidden.
 state.getHiddenProps().forEach(prop => {
   if (prop in INPUTS) {
@@ -168,9 +189,6 @@ let colorScale = d3.scale.linear<string, number>()
                      .range(["#f59322", "#e8eaeb", "#0877bd"])
                      .clamp(true);
 let iter = 0;
-let trainData: Example2D[] = [];
-let testData: Example2D[] = [];
-let network: nn.Node[][] = null;
 let lossTrain = 0;
 let lossTest = 0;
 let player = new Player();
@@ -841,8 +859,11 @@ function updateDecisionBoundary(network: nn.Node[][], firstTime: boolean) {
     for (j = 0; j < DENSITY; j++) {
       // 1 for points inside the circle, and 0 for points outside the circle.
       let x = xScale(i);
-      let y = yScale(j);
-      let input = constructInput(x, y);
+        let y = yScale(j);
+
+        let densityPoint: Example2D = {p: [x, y], dim: 2, label:0};
+
+      let input = constructInput(densityPoint);
       nn.forwardProp(network, input);
       nn.forEachNode(network, true, node => {
         boundary[node.id][i][j] = node.output;
@@ -850,7 +871,7 @@ function updateDecisionBoundary(network: nn.Node[][], firstTime: boolean) {
       if (firstTime) {
         // Go through all predefined inputs.
         for (let nodeId in INPUTS) {
-          boundary[nodeId][i][j] = INPUTS[nodeId].f(x, y);
+          boundary[nodeId][i][j] = INPUTS[nodeId].f(densityPoint);
         }
       }
     }
@@ -861,7 +882,7 @@ function getLoss(network: nn.Node[][], dataPoints: Example2D[]): number {
   let loss = 0;
   for (let i = 0; i < dataPoints.length; i++) {
     let dataPoint = dataPoints[i];
-    let input = constructInput(dataPoint.x, dataPoint.y);
+    let input = constructInput(dataPoint);
     let output = nn.forwardProp(network, input);
     loss += nn.Errors.SQUARE.error(output, dataPoint.label);
   }
@@ -916,11 +937,13 @@ function constructInputIds(): string[] {
   return result;
 }
 
-function constructInput(x: number, y: number): number[] {
+function constructInput(point: Example2D): number[] {
   let input: number[] = [];
   for (let inputName in INPUTS) {
-    if (state[inputName]) {
-      input.push(INPUTS[inputName].f(x, y));
+      if (state[inputName]) {
+          let c = INPUTS[inputName];
+          let dim_value: number = c.f(point);
+          input.push(dim_value);
     }
   }
   return input;
@@ -929,7 +952,7 @@ function constructInput(x: number, y: number): number[] {
 function oneStep(): void {
   iter++;
   trainData.forEach((point, i) => {
-    let input = constructInput(point.x, point.y);
+    let input = constructInput(point);
     nn.forwardProp(network, input);
     nn.backProp(network, point.label, nn.Errors.SQUARE);
     if ((i + 1) % state.batchSize === 0) {
@@ -970,13 +993,19 @@ function reset(onStartup=false) {
   d3.select("#num-layers").text(state.numHiddenLayers);
 
   // Make a simple network.
-  iter = 0;
-  let numInputs = constructInput(0 , 0).length;
+    iter = 0;
+
+    let dummy: Example2D = {p: [0, 0], dim: 2, label: 0};
+    let numInputs = constructInput(dummy).length;
+
+    console.log("nbinputs:", numInputs);
   let shape = [numInputs].concat(state.networkShape).concat([1]);
   let outputActivation = (state.problem === Problem.REGRESSION) ?
-      nn.Activations.LINEAR : nn.Activations.TANH;
-  network = nn.buildNetwork(shape, state.activation, outputActivation,
-      state.regularization, constructInputIds(), state.initZero);
+        nn.Activations.LINEAR : nn.Activations.TANH;
+
+    console.log("shape:", shape);
+    network = nn.buildNetwork(shape, state.activation, outputActivation,
+                              state.regularization, constructInputIds(), state.initZero);
   lossTrain = getLoss(network, trainData);
   lossTest = getLoss(network, testData);
   drawNetwork(network);
@@ -1018,12 +1047,13 @@ function drawDatasetThumbnails() {
     canvas.setAttribute("height", h);
     let context = canvas.getContext("2d");
     let data = dataGenerator(200, 0);
-    data.forEach(function(d) {
+      data.forEach(function(d: Example2D) {
       context.fillStyle = colorScale(d.label);
-      context.fillRect(w * (d.x + 6) / 12, h * (d.y + 6) / 12, 4, 4);
+      context.fillRect(w * (d.p[0] + 6) / 12, h * (d.p[1] + 6) / 12, 4, 4);
     });
     d3.select(canvas.parentNode).style("display", null);
   }
+
   d3.selectAll(".dataset").style("display", "none");
 
   if (state.problem === Problem.CLASSIFICATION) {
@@ -1043,8 +1073,6 @@ function drawDatasetThumbnails() {
         if (regDataset == "reg-csv")
         {
             renderThumbnail(canvas, csvdataset.makeThumbnail);
-            
-           // renderThumbnail(canvas, regDatasets['reg-gauss']);
         }
         else
         {
@@ -1115,15 +1143,17 @@ function generateData(firstTime = false) {
 
 export function updateData(data) {
 
-  // Shuffle the data in-place.
-  shuffle(data);
-  // Split into train and test data.
+    // Shuffle the data in-place.
+    shuffle(data);
+    // Split into train and test data.
     let splitIndex = Math.floor(data.length * state.percTrainData / 100);
 
-  trainData = data.slice(0, splitIndex);
-  testData = data.slice(splitIndex);
-  heatMap.updatePoints(trainData);
-  heatMap.updateTestPoints(state.showTestData ? testData : []);
+    trainData = data.slice(0, splitIndex);
+    testData = data.slice(splitIndex);
+    heatMap.updatePoints(trainData);
+    heatMap.updateTestPoints(state.showTestData ? testData : []);
+
+    INPUTS = loadFeatures(trainData[0].dim);
 }
 
 let firstInteraction = true;

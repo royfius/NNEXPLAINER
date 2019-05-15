@@ -183,9 +183,9 @@ export class HeatMap {
     // Keep only points that are inside the bounds.
     let xDomain = this.xScale.domain();
     let yDomain = this.yScale.domain();
-    points = points.filter(p => {
-      return p.x >= xDomain[0] && p.x <= xDomain[1]
-        && p.y >= yDomain[0] && p.y <= yDomain[1];
+    points = points.filter(point => {
+      return point.p[0] >= xDomain[0] && point.p[0] <= xDomain[1]
+        && point.p[1] >= yDomain[0] && point.p[1] <= yDomain[1];
     });
 
     // Attach data to initially empty selection.
@@ -197,8 +197,8 @@ export class HeatMap {
     // Update points to be in the correct position.
     selection
       .attr({
-        cx: (d: Example2D) => this.xScale(d.x),
-        cy: (d: Example2D) => this.yScale(d.y),
+        cx: (d: Example2D) => this.xScale(d.p[0]),
+        cy: (d: Example2D) => this.yScale(d.p[1]),
       })
       .style("fill", d => this.color(d.label));
 
