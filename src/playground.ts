@@ -71,6 +71,7 @@ function loadFeatures(nbdim: number): {[name: string]: InputFeature} {
     for (let i = 0; i < nbdim; i++) {
         let inputName = "X_" + (i + 1).toString();
         INPUTS[inputName] = {f: (dataset) => dataset.p[Number(i)], label: inputName};
+        state[inputName] = true;
     }
 
     return INPUTS;
@@ -857,17 +858,17 @@ function updateDecisionBoundary(network: nn.Node[][], firstTime: boolean) {
       }
     }
     for (j = 0; j < DENSITY; j++) {
-      // 1 for points inside the circle, and 0 for points outside the circle.
-      let x = xScale(i);
+        // 1 for points inside the circle, and 0 for points outside the circle.
+        let x = xScale(i);
         let y = yScale(j);
 
         let densityPoint: Example2D = {p: [x, y], dim: 2, label:0};
 
-      let input = constructInput(densityPoint);
-      nn.forwardProp(network, input);
-      nn.forEachNode(network, true, node => {
-        boundary[node.id][i][j] = node.output;
-      });
+        let input = constructInput(densityPoint);
+        nn.forwardProp(network, input);
+        nn.forEachNode(network, true, node => {
+            boundary[node.id][i][j] = node.output;
+        });
       if (firstTime) {
         // Go through all predefined inputs.
         for (let nodeId in INPUTS) {
@@ -1070,12 +1071,10 @@ function drawDatasetThumbnails() {
             document.querySelector(`canvas[data-regDataset=${regDataset}]`);
 
         // skip thumbnail for reg-csv;
-        if (regDataset == "reg-csv")
-        {
+        if (regDataset == "reg-csv") {
             renderThumbnail(canvas, csvdataset.makeThumbnail);
         }
-        else
-        {
+        else {
             let dataGenerator = regDatasets[regDataset];
             renderThumbnail(canvas, dataGenerator);
         }
@@ -1154,6 +1153,7 @@ export function updateData(data) {
     heatMap.updateTestPoints(state.showTestData ? testData : []);
 
     INPUTS = loadFeatures(trainData[0].dim);
+    reset();
 }
 
 let firstInteraction = true;
