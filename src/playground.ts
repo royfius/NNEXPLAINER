@@ -71,9 +71,10 @@ function loadFeatures(nbdim: number): {[name: string]: InputFeature} {
     for (let i = 0; i < nbdim; i++) {
         let inputName = "X_" + (i + 1).toString();
         INPUTS[inputName] = {f: (dataset) => dataset.p[Number(i)], label: inputName};
+
+        // turn them on @GUI by default;
         state[inputName] = true;
     }
-
     return INPUTS;
 }
 
@@ -165,7 +166,7 @@ let trainData: Example2D[] = [];
 let testData: Example2D[] = [];
 let network: nn.Node[][] = null;
 
-let INPUTS = loadFeatures(2);
+let INPUTS = loadFeatures(3);
 
 // Filter out inputs that are hidden.
 state.getHiddenProps().forEach(prop => {
@@ -206,7 +207,9 @@ export function loadDataset(newDataset) {
     //d3.select(this).classed("selected", true);
     generateData();
     parametersChanged = true;
+    makeGUI();
     reset();
+
 
 }
 
@@ -862,7 +865,7 @@ function updateDecisionBoundary(network: nn.Node[][], firstTime: boolean) {
         let x = xScale(i);
         let y = yScale(j);
 
-        let densityPoint: Example2D = {p: [x, y], dim: 2, label:0};
+        let densityPoint: Example2D = {p: [x, y, x, y, x ,y, x], dim: 2, label:0};
 
         let input = constructInput(densityPoint);
         nn.forwardProp(network, input);
@@ -954,6 +957,7 @@ function oneStep(): void {
   iter++;
   trainData.forEach((point, i) => {
     let input = constructInput(point);
+
     nn.forwardProp(network, input);
     nn.backProp(network, point.label, nn.Errors.SQUARE);
     if ((i + 1) % state.batchSize === 0) {
@@ -982,35 +986,35 @@ export function getOutputWeights(network: nn.Node[][]): number[] {
 }
 
 function reset(onStartup=false) {
-  lineChart.reset();
-  state.serialize();
-  if (!onStartup) {
-    userHasInteracted();
-  }
-  player.pause();
+    lineChart.reset();
+    state.serialize();
+    if (!onStartup) {
+        userHasInteracted();
+    }
+    player.pause();
 
-  let suffix = state.numHiddenLayers !== 1 ? "s" : "";
-  d3.select("#layers-label").text("Hidden layer" + suffix);
-  d3.select("#num-layers").text(state.numHiddenLayers);
+    let suffix = state.numHiddenLayers !== 1 ? "s" : "";
+    d3.select("#layers-label").text("Hidden layer" + suffix);
+    d3.select("#num-layers").text(state.numHiddenLayers);
 
-  // Make a simple network.
+    // Make a simple network.
     iter = 0;
 
     let dummy: Example2D = {p: [0, 0], dim: 2, label: 0};
-    let numInputs = constructInput(dummy).length;
+    let numInputs = constructInput(trainData[0]).length;
 
     console.log("nbinputs:", numInputs);
-  let shape = [numInputs].concat(state.networkShape).concat([1]);
-  let outputActivation = (state.problem === Problem.REGRESSION) ?
+    let shape = [numInputs].concat(state.networkShape).concat([1]);
+    let outputActivation = (state.problem === Problem.REGRESSION) ?
         nn.Activations.LINEAR : nn.Activations.TANH;
 
     console.log("shape:", shape);
     network = nn.buildNetwork(shape, state.activation, outputActivation,
                               state.regularization, constructInputIds(), state.initZero);
-  lossTrain = getLoss(network, trainData);
-  lossTest = getLoss(network, testData);
-  drawNetwork(network);
-  updateUI(true);
+    lossTrain = getLoss(network, trainData);
+    lossTest = getLoss(network, testData);
+    drawNetwork(network);
+    updateUI(true);
 };
 
 function initTutorial() {

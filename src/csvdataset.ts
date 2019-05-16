@@ -22,6 +22,7 @@ function parse_csv_data(csvdata): dataset.Example2D [] {
         points.push({p, dim: csvdata[i].length - 1, label});
     }
 
+    console.log(points);
     return points;
 }
 
