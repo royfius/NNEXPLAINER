@@ -25,11 +25,12 @@ import {
   getKeyFromValue,
   Problem
 } from "./state";
+
 import {Example2D, shuffle} from "./dataset";
 import {AppendingLineChart} from "./linechart";
-import * as d3 from 'd3';
+import * as d3 from "d3";
 
-import * as csvdataset from './csvdataset';
+import * as csvdataset from "./csvdataset";
 
 let mainWidth;
 
@@ -64,13 +65,24 @@ interface InputFeature {
   label?: string;
 }
 
-function loadFeatures(nbdim: number): {[name: string]: InputFeature} {
+function loadFeatures(nbdim: number, headers: string[]):
+{[name: string]: InputFeature} {
 
     let INPUTS = {};
 
+    console.log(headers);
     for (let i = 0; i < nbdim; i++) {
         let inputName = "X_" + (i + 1).toString();
-        INPUTS[inputName] = {f: (dataset) => dataset.p[Number(i)], label: inputName};
+        let labelName = inputName;
+
+        if (i < headers.length) {
+            labelName = headers[i];
+        }
+
+        INPUTS[inputName] = {
+            f: (dataset) => dataset.p[Number(i)],
+            label: labelName
+        };
 
         // turn them on @GUI by default;
         state[inputName] = true;
@@ -166,7 +178,7 @@ let trainData: Example2D[] = [];
 let testData: Example2D[] = [];
 let network: nn.Node[][] = null;
 
-let INPUTS = loadFeatures(3);
+let INPUTS = loadFeatures(3, []);
 
 // Filter out inputs that are hidden.
 state.getHiddenProps().forEach(prop => {
@@ -989,7 +1001,7 @@ export function getOutputWeights(network: nn.Node[][]): number[] {
   return weights;
 }
 
-function reset(onStartup=false) {
+function reset(onStartup = false) {
     lineChart.reset();
     state.serialize();
     if (!onStartup) {
@@ -1078,7 +1090,7 @@ function drawDatasetThumbnails() {
       let canvas: any =
             document.querySelector(`canvas[data-regDataset=${regDataset}]`);
 
-        // skip thumbnail for reg-csv;
+        // reg-csv dataset has a thumbnail generator that is not the actual data generator;
         if (regDataset == "reg-csv") {
             renderThumbnail(canvas, csvdataset.makeThumbnail);
         }
@@ -1137,18 +1149,18 @@ function generateData(firstTime = false) {
     state.serialize();
     userHasInteracted();
   }
-  Math.seedrandom(state.seed);
-  let numSamples = (state.problem === Problem.REGRESSION) ?
-      NUM_SAMPLES_REGRESS : NUM_SAMPLES_CLASSIFY;
-  let generator = state.problem === Problem.CLASSIFICATION ?
-      state.dataset : state.regDataset;
+    Math.seedrandom(state.seed);
+    let numSamples = (state.problem === Problem.REGRESSION) ?
+        NUM_SAMPLES_REGRESS : NUM_SAMPLES_CLASSIFY;
+    let generator = state.problem === Problem.CLASSIFICATION ?
+        state.dataset : state.regDataset;
+
     let data = generator(numSamples, state.noise / 100);
 
-
-      updateData(data);
+    updateData([], data);
 }
 
-export function updateData(data) {
+export function updateData(headers, data) {
 
     // Shuffle the data in-place.
     shuffle(data);
@@ -1160,7 +1172,7 @@ export function updateData(data) {
     heatMap.updatePoints(trainData);
     heatMap.updateTestPoints(state.showTestData ? testData : []);
 
-    INPUTS = loadFeatures(trainData[0].dim);
+    INPUTS = loadFeatures(trainData[0].dim, headers);
     reset();
 }
 
