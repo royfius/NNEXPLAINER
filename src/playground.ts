@@ -865,7 +865,11 @@ function updateDecisionBoundary(network: nn.Node[][], firstTime: boolean) {
         let x = xScale(i);
         let y = yScale(j);
 
-        let densityPoint: Example2D = {p: [x, y, x, y, x ,y, x], dim: 2, label:0};
+        let densityPoint: Example2D = {
+            p: [x, y, x, y, x, y, x],
+            dim: 2,
+            label: 0
+        };
 
         let input = constructInput(densityPoint);
         nn.forwardProp(network, input);
