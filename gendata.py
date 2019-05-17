@@ -18,6 +18,9 @@ def sumdata(size=6):
 
 def buildData(fname, fn):
     dataset = open(fname, 'w')
+    labels = ["one", "two", "three", "four", "five"]
+    labels = ",".join(labels)
+    dataset.write("%s\n" % labels)
     for k in range(1200):
         d = randomdata(6)
         data = ",".join([str(x) for x in d])
