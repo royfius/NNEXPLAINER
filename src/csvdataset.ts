@@ -5,25 +5,43 @@ import * as CSV from 'csv-string';
 import * as playground from "./playground";
 
 
-function parse_csv_data(csvdata): dataset.Example2D [] {
+function parse_csv_data(csvdata): [string [], dataset.Example2D []] {
 
     let points: dataset.Example2D [] = [];
+    let Header: string[] = [];
 
     for (let i = 0; i < csvdata.length; i++) {
 
+        let H = false;
         let p = [];
         for (let j = 0; j < csvdata[i].length - 1; j++) {
 
-            let value = Number(parseFloat(csvdata[i][j]));
-            p.push(value);
-        }
+            // PARSE HEADER;
+            if (i == 0) {
+                if (isNaN(parseFloat(csvdata[i][j]))) {
+                    if (j < csvdata[i].length - 1) {
+                        Header.push(csvdata[i][j]);
+                    }
+                    H = true;
+                }
+            }
 
-        let label = Number(parseFloat(csvdata[i][csvdata[i].length - 1]));
-        points.push({p, dim: csvdata[i].length - 1, label});
+            // PARSE DATA VALUES;
+            if (!H) {
+                let value = Number(parseFloat(csvdata[i][j]));
+                p.push(value);
+            }
+        }
+        
+        // PARSE LABEL;
+        if (!H) {
+            let label = Number(parseFloat(csvdata[i][csvdata[i].length - 1]));
+            points.push({p, dim: csvdata[i].length - 1, label});
+        }
     }
 
     console.log(points);
-    return points;
+    return [Header, points];
 }
 
 
@@ -44,12 +62,11 @@ function read_csv_file() {
             reader.onload = () => {
                 let res = reader.result;
 
-                let points: dataset.Example2D [] = [];
                 let csvdata = CSV.parse(res);
 
-                let csvpoints = parse_csv_data(csvdata);
+                let csvoutput = parse_csv_data(csvdata);
 
-                playground.updateData(csvpoints);
+                playground.updateData(csvoutput[0], csvoutput[1]);
             };
 
             reader.readAsText(file);
