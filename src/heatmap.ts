@@ -35,20 +35,28 @@ export class HeatMap {
     showAxes: false,
     noSvg: false
   };
-  private xScale;
-  private yScale;
-  private numSamples: number;
-  private color;
-  private canvas;
-  private svg;
+    private xScale;
+    private yScale;
+    private numSamples: number;
+    private color;
+    private canvas;
+    private svg;
 
-  constructor(
-      width: number, numSamples: number, xDomain: [number, number],
-      yDomain: [number, number], container,
-      userSettings?: HeatMapSettings) {
-    this.numSamples = numSamples;
-    let height = width;
-    let padding = userSettings.showAxes ? 20 : 0;
+    private width: number;
+    private padding: number;
+    private xAxis;
+    private yAxis;
+    constructor(
+        width: number, numSamples: number, xDomain: [number, number],
+        yDomain: [number, number], container,
+        userSettings?: HeatMapSettings) {
+        this.numSamples = numSamples;
+        let height = width;
+        let padding = userSettings.showAxes ? 20 : 0;
+
+        // Store these attributes;
+        this.width = width;
+        this.padding = padding;
 
     if (userSettings != null) {
       // overwrite the defaults with the user-specified settings.
@@ -114,26 +122,59 @@ export class HeatMap {
       this.svg.append("g").attr("class", "test");
     }
 
-    if (this.settings.showAxes) {
-      let xAxis = d3.svg.axis()
-        .scale(this.xScale)
-        .orient("bottom");
+        if (this.settings.showAxes) {
 
-      let yAxis = d3.svg.axis()
-        .scale(this.yScale)
-        .orient("right");
 
-      this.svg.append("g")
-        .attr("class", "x axis")
-        .attr("transform", `translate(0,${height - 2 * padding})`)
-        .call(xAxis);
+            this.xScale = d3.scale.linear()
+                .domain(xDomain)
+                .range([0, this.width - 2 * this.padding]);
 
-      this.svg.append("g")
-        .attr("class", "y axis")
-        .attr("transform", "translate(" + (width - 2 * padding) + ",0)")
-        .call(yAxis);
+            this.yScale = d3.scale.linear()
+                .domain(xDomain)
+                .range([this.width - 2 * this.padding, 0]);
+
+            this.xAxis = d3.svg.axis()
+                .scale(this.xScale)
+                .orient("bottom");
+
+            this.yAxis = d3.svg.axis()
+                .scale(this.yScale)
+                .orient("right");
+
+            this.svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", `translate(0,${this.width - 2 * this.padding})`)
+                .call(this.xAxis);
+
+            this.svg.append("g")
+                .attr("class", "y axis")
+                .attr("transform", "translate(" + (this.width - 2 * this.padding) + ",0)")
+                .call(this.yAxis);
     }
   }
+
+    updateAxes(newDomain): void {
+        //this.svg.selectAll("g.x axis").remove();
+        //this.svg.selectAll("g.y axis").remove();
+
+        let a =3;
+
+
+
+    }
+    updateScale(newDomain): void {
+
+        this.xScale.domain(newDomain);
+        this.yScale.domain(newDomain);
+        this.xAxis.scale(this.xScale);
+        this.yAxis.scale(this.yScale);
+
+        this.svg.selectAll("g .y.axis")
+            .call(this.yAxis);
+
+        this.svg.selectAll("g .x.axis")
+            .call(this.xAxis);
+}
 
   updateTestPoints(points: Example2D[]): void {
     if (this.settings.noSvg) {
