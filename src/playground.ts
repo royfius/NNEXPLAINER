@@ -54,7 +54,7 @@ const RECT_SIZE = 30;
 const BIAS_SIZE = 5;
 const NUM_SAMPLES_CLASSIFY = 500;
 const NUM_SAMPLES_REGRESS = 1200;
-const DENSITY = 100;
+let DENSITY = 100;
 
 enum HoverType {
   BIAS, WEIGHT
@@ -70,7 +70,7 @@ function loadFeatures(nbdim: number, headers: string[]):
 
     let INPUTS = {};
 
-    console.log(headers);
+    console.log("Headers: ", headers);
     for (let i = 0; i < nbdim; i++) {
         let inputName = "X_" + (i + 1).toString();
         let labelName = inputName;
@@ -191,9 +191,13 @@ let boundary: {[id: string]: number[][]} = {};
 let selectedNodeId: string = null;
 // Plot the heatmap.
 let xDomain: [number, number] = [-6, 6];
-let heatMap =
-    new HeatMap(300, DENSITY, xDomain, xDomain, d3.select("#heatmap"),
-        {showAxes: true});
+
+function genHeatmap() {
+
+return new HeatMap(300, DENSITY, xDomain, xDomain, d3.select("#heatmap"),
+                   {showAxes: true});
+}
+let heatMap = genHeatmap();
 let linkWidthScale = d3.scale.linear()
   .domain([0, 5])
   .range([1, 10])
@@ -215,6 +219,9 @@ export function loadDataset(newDataset) {
 
     let regDataThumbnails = d3.selectAll("canvas[data-regDataset]");
     state.regDataset = newDataset;
+
+
+
     regDataThumbnails.classed("selected", false);
     //d3.select(this).classed("selected", true);
     generateData();
@@ -1169,6 +1176,28 @@ export function updateData(headers, data) {
 
     trainData = data.slice(0, splitIndex);
     testData = data.slice(splitIndex);
+
+    // Calculate new DENSITY;
+
+    if (data.length) {
+        let minV = 99999;
+        let maxV = -99999;
+        for (let i = 0; i < data.length; i++) {
+            minV = Math.min(minV, data[i].p[0], data[i].p[1]);
+            maxV = Math.max(maxV, data[i].p[0], data[i].p[1]);
+        }
+        let Domain = Math.round((maxV - minV) / 2);
+        //DENSITY = Math.round((maxV - minV) * 120);
+        xDomain = [-Domain, Domain];
+        console.log("xDomain", xDomain);
+        heatMap.updateScale(xDomain);
+        heatMap.updateAxes(xDomain);
+    }
+
+
+
+
+
     heatMap.updatePoints(trainData);
     heatMap.updateTestPoints(state.showTestData ? testData : []);
 
