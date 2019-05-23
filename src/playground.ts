@@ -1068,19 +1068,30 @@ function initTutorial() {
 }
 
 function drawDatasetThumbnails() {
-  function renderThumbnail(canvas, dataGenerator) {
-    let w = 100;
-    let h = 100;
-    canvas.setAttribute("width", w);
-    canvas.setAttribute("height", h);
-    let context = canvas.getContext("2d");
-    let data = dataGenerator(200, 0);
-      data.forEach(function(d: Example2D) {
-      context.fillStyle = colorScale(d.label);
-      context.fillRect(w * (d.p[0] + 6) / 12, h * (d.p[1] + 6) / 12, 4, 4);
-    });
-    d3.select(canvas.parentNode).style("display", null);
-  }
+    function renderThumbnail(canvas, dataGenerator) {
+        let w = 100;
+        let h = 100;
+        canvas.setAttribute("width", w);
+        canvas.setAttribute("height", h);
+        let context = canvas.getContext("2d");
+        let data = dataGenerator(200, 0);
+        data.forEach(function(d: Example2D) {
+            context.fillStyle = colorScale(d.label);
+            context.fillRect(w * (d.p[0] + 6) / 12, h * (d.p[1] + 6) / 12, 4, 4);
+        });
+        d3.select(canvas.parentNode).style("display", null);
+    }
+
+    function manageThumbnail(canvas, datasetName, datasetGroup) {
+        // reg-csv dataset has a thumbnail generator that is not the actual data generator;
+        if (datasetName == "csv") {
+            renderThumbnail(canvas, csvdataset.makeThumbnail);
+        }
+        else {
+            let dataGenerator = datasetGroup[datasetName];
+            renderThumbnail(canvas, dataGenerator);
+        }
+    }
 
   d3.selectAll(".dataset").style("display", "none");
 
@@ -1088,8 +1099,8 @@ function drawDatasetThumbnails() {
     for (let dataset in datasets) {
       let canvas: any =
           document.querySelector(`canvas[data-dataset=${dataset}]`);
-      let dataGenerator = datasets[dataset];
-      renderThumbnail(canvas, dataGenerator);
+
+        manageThumbnail(canvas, dataset, datasets);
     }
   }
   if (state.problem === Problem.REGRESSION) {
@@ -1097,14 +1108,7 @@ function drawDatasetThumbnails() {
       let canvas: any =
             document.querySelector(`canvas[data-regDataset=${regDataset}]`);
 
-        // reg-csv dataset has a thumbnail generator that is not the actual data generator;
-        if (regDataset == "reg-csv") {
-            renderThumbnail(canvas, csvdataset.makeThumbnail);
-        }
-        else {
-            let dataGenerator = regDatasets[regDataset];
-            renderThumbnail(canvas, dataGenerator);
-        }
+        manageThumbnail(canvas, regDataset, regDatasets);
     }
   }
 }
