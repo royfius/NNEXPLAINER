@@ -55,6 +55,7 @@ const BIAS_SIZE = 5;
 const NUM_SAMPLES_CLASSIFY = 500;
 const NUM_SAMPLES_REGRESS = 1200;
 let DENSITY = 100;
+let INPUT_DIM = 0;
 
 enum HoverType {
   BIAS, WEIGHT
@@ -884,11 +885,22 @@ function updateDecisionBoundary(network: nn.Node[][], firstTime: boolean) {
         let x = xScale(i);
         let y = yScale(j);
 
+        // Build dummy input, source of heatmap vectors;
         let densityPoint: Example2D = {
-            p: [x, y, x, y, x, y, x],
-            dim: 2,
+            p: [],
+            dim: INPUT_DIM,
             label: 0
         };
+
+        for (let k = 0; k < INPUT_DIM; k++) {
+            if (k % 2 == 0) {
+                densityPoint.p.push(x);
+            }
+            else {
+                densityPoint.p.push(y);
+            }
+        }
+
 
         let input = constructInput(densityPoint);
         nn.forwardProp(network, input);
@@ -1205,6 +1217,7 @@ export function updateData(headers, data) {
     heatMap.updatePoints(trainData);
     heatMap.updateTestPoints(state.showTestData ? testData : []);
 
+    INPUT_DIM = trainData[0].dim;
     INPUTS = loadFeatures(trainData[0].dim, headers);
     reset();
 }
