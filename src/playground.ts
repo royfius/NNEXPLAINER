@@ -31,6 +31,7 @@ import {AppendingLineChart} from "./linechart";
 import * as d3 from "d3";
 
 import * as csvdataset from "./csvdataset";
+import * as evaluation from "./evaluation";
 
 let mainWidth;
 
@@ -210,6 +211,9 @@ let colorScale = d3.scale.linear<string, number>()
 let iter = 0;
 let lossTrain = 0;
 let lossTest = 0;
+let trainOutput = [];
+let testOutput = [];
+
 let player = new Player();
 let lineChart = new AppendingLineChart(d3.select("#linechart"),
     ["#777", "black"]);
@@ -917,15 +921,20 @@ function updateDecisionBoundary(network: nn.Node[][], firstTime: boolean) {
   }
 }
 
-function getLoss(network: nn.Node[][], dataPoints: Example2D[]): number {
-  let loss = 0;
+
+function getLoss(network: nn.Node[][], dataPoints: Example2D[]):
+[number, number []] {
+    let loss = 0;
+    let outputs = [];
   for (let i = 0; i < dataPoints.length; i++) {
-    let dataPoint = dataPoints[i];
-    let input = constructInput(dataPoint);
-    let output = nn.forwardProp(network, input);
-    loss += nn.Errors.SQUARE.error(output, dataPoint.label);
+      let dataPoint = dataPoints[i];
+      let input = constructInput(dataPoint);
+      let output = nn.forwardProp(network, input);
+      loss += nn.Errors.SQUARE.error(output, dataPoint.label);
+      outputs.push(output);
   }
-  return loss / dataPoints.length;
+    console.log(outputs);
+    return [loss / dataPoints.length, outputs];
 }
 
 function updateUI(firstStep = false) {
@@ -959,11 +968,18 @@ function updateUI(firstStep = false) {
     return n.toFixed(3);
   }
 
-  // Update loss and iteration number.
-  d3.select("#loss-train").text(humanReadable(lossTrain));
-  d3.select("#loss-test").text(humanReadable(lossTest));
-  d3.select("#iter-number").text(addCommas(zeroPad(iter)));
-  lineChart.addDataPoint([lossTrain, lossTest]);
+    // Update loss and iteration number.
+    d3.select("#loss-train").text(humanReadable(lossTrain));
+    d3.select("#loss-test").text(humanReadable(lossTest));
+    d3.select("#iter-number").text(addCommas(zeroPad(iter)));
+    lineChart.addDataPoint([lossTrain, lossTest]);
+
+
+    // Update Confusion Heatmaps;
+
+    let confusionTest = evaluation.confusionMatrix(testData, testOutput);
+    document.querySelector("#confusionTest").innerHTML =
+        "Test Confusion Matrix:<br>" + evaluation.textPlot(confusionTest);
 }
 
 function constructInputIds(): string[] {
@@ -999,10 +1015,12 @@ function oneStep(): void {
       nn.updateWeights(network, state.learningRate, state.regularizationRate);
     }
   });
-  // Compute the loss.
-  lossTrain = getLoss(network, trainData);
-  lossTest = getLoss(network, testData);
-  updateUI();
+
+    // Compute the loss.
+    [lossTrain, trainOutput] = getLoss(network, trainData);
+    [lossTest, testOutput] = getLoss(network, testData);
+
+    updateUI();
 }
 
 export function getOutputWeights(network: nn.Node[][]): number[] {
@@ -1046,8 +1064,10 @@ function reset(onStartup = false) {
     console.log("shape:", shape);
     network = nn.buildNetwork(shape, state.activation, outputActivation,
                               state.regularization, constructInputIds(), state.initZero);
-    lossTrain = getLoss(network, trainData);
-    lossTest = getLoss(network, testData);
+
+    [lossTrain, trainOutput] = getLoss(network, trainData);
+    [lossTest, testOutput] = getLoss(network, testData);
+
     drawNetwork(network);
     updateUI(true);
 };
