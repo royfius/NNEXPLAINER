@@ -933,7 +933,6 @@ function getLoss(network: nn.Node[][], dataPoints: Example2D[]):
       loss += nn.Errors.SQUARE.error(output, dataPoint.label);
       outputs.push(output);
   }
-    console.log(outputs);
     return [loss / dataPoints.length, outputs];
 }
 
