@@ -24,12 +24,12 @@ class FileLoader {
 
             if (files.length > 1) {
                 // Ask user if order is correct;
-                let response = confirm("Is this " + files[1].name + "the label file? ");
+                let response = confirm("Is this " + files[1].name + " the label file? ");
                 if (!response) {
                     files = files.reverse();
                 }
             }
-            
+
             let fullCsvData = [];
 
             for (let f = 0; f < files.length; f++) {
