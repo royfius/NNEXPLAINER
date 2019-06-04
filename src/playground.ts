@@ -446,9 +446,10 @@ function makeGUI() {
     let newWidth = document.querySelector("#main-part")
         .getBoundingClientRect().width;
     if (newWidth !== mainWidth) {
-      mainWidth = newWidth;
-      drawNetwork(network);
-      updateUI(true);
+        mainWidth = newWidth;
+        console.log("Network resized.")
+        drawNetwork(network);
+        updateUI(true);
     }
   });
 
@@ -620,7 +621,8 @@ function drawNetwork(network: nn.Node[][]): void {
   let node2coord: {[id: string]: {cx: number, cy: number}} = {};
   let container = svg.append("g")
     .classed("core", true)
-    .attr("transform", `translate(${padding},${padding})`);
+        .attr("transform", `translate(${padding},${padding})`);
+
   // Draw the network layer by layer.
   let numLayers = network.length;
   let featureWidth = 118;
@@ -629,15 +631,15 @@ function drawNetwork(network: nn.Node[][]): void {
       .rangePoints([featureWidth, width - RECT_SIZE], 0.7);
   let nodeIndexScale = (nodeIndex: number) => nodeIndex * (RECT_SIZE + 25);
 
-
   let calloutThumb = d3.select(".callout.thumbnail").style("display", "none");
   let calloutWeights = d3.select(".callout.weights").style("display", "none");
   let idWithCallout = null;
   let targetIdWithCallout = null;
 
-  // Draw the input layer separately.
-  let cx = RECT_SIZE / 2 + 50;
-  let nodeIds = Object.keys(INPUTS);
+    // Draw the input layer separately.
+    let cx = RECT_SIZE / 2 + 50;
+    let nodeIds = Object.keys(INPUTS);
+
   let maxY = nodeIndexScale(nodeIds.length);
   nodeIds.forEach((nodeId, i) => {
     let cy = nodeIndexScale(i) + RECT_SIZE / 2;
@@ -1043,6 +1045,7 @@ function reset(onStartup = false) {
     if (!onStartup) {
         userHasInteracted();
     }
+
     player.pause();
 
     let suffix = state.numHiddenLayers !== 1 ? "s" : "";
@@ -1053,20 +1056,22 @@ function reset(onStartup = false) {
     iter = 0;
 
     let dummy: Example2D = {p: [0, 0], dim: 2, label: 0};
+
     let numInputs = constructInput(trainData[0]).length;
 
-    console.log("nbinputs:", numInputs);
+    // console.log("nbinputs:", numInputs);
     let shape = [numInputs].concat(state.networkShape).concat([1]);
     let outputActivation = (state.problem === Problem.REGRESSION) ?
         nn.Activations.LINEAR : nn.Activations.TANH;
 
-    console.log("shape:", shape);
+    // console.log("shape:", shape);
     network = nn.buildNetwork(shape, state.activation, outputActivation,
                               state.regularization, constructInputIds(), state.initZero);
 
     [lossTrain, trainOutput] = getLoss(network, trainData);
     [lossTest, testOutput] = getLoss(network, testData);
 
+    console.log("Global reset.");
     drawNetwork(network);
     updateUI(true);
 };
@@ -1253,8 +1258,13 @@ function userHasInteracted() {
   if (state.tutorial != null && state.tutorial !== '') {
     page = `/v/tutorials/${state.tutorial}`;
   }
-  ga('set', 'page', page);
-  ga('send', 'pageview', {'sessionControl': 'start'});
+
+    // This check is needed for the first network drawing;
+    // ga is undefined at that point;
+    if (typeof ga != "undefined") {
+        ga('set', 'page', page);
+        ga('send', 'pageview', {'sessionControl': 'start'});
+    }
 }
 
 function simulationStarted() {
