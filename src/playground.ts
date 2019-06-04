@@ -273,9 +273,13 @@ function makeGUI() {
   let dataThumbnails = d3.selectAll("canvas[data-dataset]");
     dataThumbnails.on("click", function() {
         let newDataset = datasets[this.dataset.dataset];
+
+        /* This used to disable clicking on selected dataset, overriden!
         if (newDataset === state.dataset) {
             return; // No-op.
         }
+        */
+
         state.dataset = newDataset;
         dataThumbnails.classed("selected", false);
         d3.select(this).classed("selected", true);
