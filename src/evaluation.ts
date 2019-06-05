@@ -1,6 +1,14 @@
 import * as d3 from "d3";
 
-export function confusionMatrix(targetDataset, predictedValues): number[][] {
+export type ConfusionMatrix = {
+    matrix: number[][],
+    labels: number[],
+    recall: number,
+    precision: number
+}
+
+export function confusionMatrix(targetDataset, predictedValues):
+ConfusionMatrix {
     let trueLabels = [];
     let predictedLabels = [];
 
@@ -23,7 +31,7 @@ export function confusionMatrix(targetDataset, predictedValues): number[][] {
 }
 
 // ripped off from npm's ml-confusion-matrix module;
-function createConfusionMatrix(trueLabels, predictedLabels): number[][] {
+function createConfusionMatrix(trueLabels, predictedLabels): ConfusionMatrix {
 
     // Unable to use Set here. Will do manually,
     // Who wonrders upgrading to ES6 will break everything?
@@ -33,6 +41,8 @@ function createConfusionMatrix(trueLabels, predictedLabels): number[][] {
     let AllLabels = trueLabels.concat(predictedLabels);
 
     AllLabels = AllLabels.filter(distinct);
+
+    AllLabels = AllLabels.sort();
 
     // Also making our own ES6's Array.fill(0);
     const fill = (arr) => {
@@ -58,20 +68,35 @@ function createConfusionMatrix(trueLabels, predictedLabels): number[][] {
         }
     }
 
-    return matrix;
+    // p values as in "tp" will be values of 1, while n values are -1;
+    let p_index = AllLabels.indexOf(1);
+    let n_index = AllLabels.indexOf(-1);
+
+    let recall = matrix[p_index][p_index] / (matrix[p_index][p_index] + matrix[n_index][p_index]);
+    let precision = matrix[p_index][p_index] / (matrix[p_index][p_index] + matrix[p_index][n_index]);
+
+    let mat: ConfusionMatrix = {
+        matrix: matrix,
+        labels: AllLabels,
+        recall: recall,
+        precision: precision
+
+    };
+    return mat;
 }
 
 // Temporary matrix "PLOT";
 export function textPlot(matrix): string {
     let output = "";
 
-    for (let i = 0; i < matrix.length; i++) {
-        for (let j = 0; j < matrix.length; j++) {
-            output += matrix[i][j].toString() + "\t";
+    for (let i = 0; i < matrix.matrix.length; i++) {
+        for (let j = 0; j < matrix.matrix.length; j++) {
+            output += matrix.matrix[i][j].toString() + "\t";
         }
         output += "<br>";
     }
 
+    output += "<br>Recall: " + matrix.recall +"<br>Precision: " + matrix.precision;
     return output;
 }
 
