@@ -491,10 +491,34 @@ function updateWeightsUI(network: nn.Node[][], container) {
   }
 }
 
+function drawInputNode(cx: number, cy: number, nodeId: string,
+                       container, node?: nn.Node) {
+
+    let x = cx - RECT_SIZE / 2;
+    let y = cy - RECT_SIZE / 2;
+
+    let nodeGroup = container.append("g")
+        .attr({
+            "class": "node",
+            "id": `node${nodeId}`,
+            "transform": `translate(${x},${y})`
+        });
+
+
+
+}
+
+
 function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
-    container, node?: nn.Node) {
-  let x = cx - RECT_SIZE / 2;
-  let y = cy - RECT_SIZE / 2;
+                  container, node?: nn.Node, data_series?: number[]) {
+
+
+    let _RECT_SIZE = RECT_SIZE;
+    if (isInput) {
+        let _RECT_SIZE = RECT_SIZE * 2;
+    } 
+  let x = cx - _RECT_SIZE / 2;
+  let y = cy - _RECT_SIZE / 2;
 
   let nodeGroup = container.append("g")
     .attr({
@@ -504,13 +528,14 @@ function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
     });
 
   // Draw the main rectangle.
-  nodeGroup.append("rect")
-    .attr({
-      x: 0,
-      y: 0,
-      width: RECT_SIZE,
-      height: RECT_SIZE,
-    });
+    let main = nodeGroup.append("rect")
+        .attr({
+            x: 0,
+            y: 0,
+            width: _RECT_SIZE,
+            height: _RECT_SIZE,
+        })
+        .style("opacity", 0);
   let activeOrNotClass = state[nodeId] ? "active" : "inactive";
   if (isInput) {
     let label = INPUTS[nodeId].label != null ?
@@ -544,7 +569,9 @@ function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
     } else {
       text.append("tspan").text(label);
     }
-    nodeGroup.classed(activeOrNotClass, true);
+      nodeGroup.classed(activeOrNotClass, true);
+
+
   }
   if (!isInput) {
     // Draw the node's bias.
@@ -552,7 +579,7 @@ function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
       .attr({
         id: `bias-${nodeId}`,
         x: -BIAS_SIZE - 2,
-        y: RECT_SIZE - BIAS_SIZE + 3,
+        y: _RECT_SIZE - BIAS_SIZE + 3,
         width: BIAS_SIZE,
         height: BIAS_SIZE,
       }).on("mouseenter", function() {
@@ -562,6 +589,7 @@ function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
       });
   }
 
+    if (!isInput) {}
   // Draw the node's canvas.
   let div = d3.select("#network").insert("div", ":first-child")
     .attr({
@@ -588,6 +616,7 @@ function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
       heatMap.updateBackground(boundary[nn.getOutputNode(network).id],
           state.discretize);
     });
+    
   if (isInput) {
     div.on("click", function() {
       state[nodeId] = !state[nodeId];
@@ -599,10 +628,30 @@ function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
   if (isInput) {
     div.classed(activeOrNotClass, true);
   }
-  let nodeHeatMap = new HeatMap(RECT_SIZE, DENSITY / 10, xDomain,
-      xDomain, div, {noSvg: true});
-  div.datum({heatmap: nodeHeatMap, id: nodeId});
 
+    let nodeHeatMap = new HeatMap(_RECT_SIZE, DENSITY / 10, xDomain,
+                                  xDomain, div, {noSvg: true});
+    if (isInput) {
+        let linechart = div.insert("div", ":last-child")
+            .attr({
+                "width": _RECT_SIZE,
+                "height": _RECT_SIZE})
+            .style({
+                "position": "absolute",
+                "left": "0",
+                "top": "0"
+            });
+        let lines = new AppendingLineChart(div, ["black"]);
+
+        for (let i = 0; i < data_series.length; i++) {
+            lines.addDataPoint([data_series[i]]);
+        }
+
+    }
+    if (!isInput) {
+        div.datum({heatmap: nodeHeatMap, id: nodeId});
+    }
+    
 }
 
 // Draw network
@@ -644,12 +693,19 @@ function drawNetwork(network: nn.Node[][]): void {
     let cx = RECT_SIZE / 2 + 50;
     let nodeIds = Object.keys(INPUTS);
 
-  let maxY = nodeIndexScale(nodeIds.length);
-  nodeIds.forEach((nodeId, i) => {
-    let cy = nodeIndexScale(i) + RECT_SIZE / 2;
-    node2coord[nodeId] = {cx, cy};
-    drawNode(cx, cy, nodeId, true, container);
-  });
+    let maxY = nodeIndexScale(nodeIds.length);
+    nodeIds.forEach((nodeId, i) => {
+        let cy = nodeIndexScale(i) + RECT_SIZE / 2;
+        node2coord[nodeId] = {cx, cy};
+
+        // Extract a sample of data to show in the input node;
+        let inputValues = [];
+        let data_size = Math.min(20, trainData.length);
+        for (let idx = 0; idx < data_size; idx++) {
+            inputValues.push(trainData[idx].p[i]);
+        }
+        drawNode(cx, cy, nodeId, true, container, node = null, inputValues);
+    });
 
   // Draw the intermediate layers.
   for (let layerIdx = 1; layerIdx < numLayers - 1; layerIdx++) {
@@ -902,6 +958,7 @@ function updateDecisionBoundary(network: nn.Node[][], firstTime: boolean) {
             label: 0
         };
 
+        // Go through each input;
         for (let k = 0; k < INPUT_DIM; k++) {
             if (k % 2 == 0) {
                 densityPoint.p.push(x);
@@ -955,9 +1012,12 @@ function updateUI(firstStep = false) {
 
   // Update all decision boundaries.
   d3.select("#network").selectAll("div.canvas")
-      .each(function(data: {heatmap: HeatMap, id: string}) {
-    data.heatmap.updateBackground(reduceMatrix(boundary[data.id], 10),
-        state.discretize);
+        .each(function(data) { //: {heatmap: HeatMap, id: string}) {
+            // Input nodes are "undefined" here;
+            if (typeof data != "undefined") {
+                data.heatmap.updateBackground(reduceMatrix(boundary[data.id], 10),
+                                              state.discretize);
+            }
   });
 
   function zeroPad(n: number): string {
