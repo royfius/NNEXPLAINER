@@ -27,7 +27,7 @@ type DataPoint = {
 export class AppendingLineChart {
   private numLines: number;
   private data: DataPoint[] = [];
-  private svg;
+  public svg;
   private xScale;
   private yScale;
   private paths;
@@ -42,7 +42,7 @@ export class AppendingLineChart {
     let node = container.node() as HTMLElement;
     let totalWidth = node.offsetWidth;
     let totalHeight = node.offsetHeight;
-    let margin = {top: 2, right: 0, bottom: 2, left: 2};
+    let margin = {top: 0, right: 0, bottom: 2, left: 2};
     let width = totalWidth - margin.left - margin.right;
     let height = totalHeight - margin.top - margin.bottom;
 
@@ -55,10 +55,10 @@ export class AppendingLineChart {
       .range([height, 0]);
 
     this.svg = container.append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", `translate(${margin.left},${margin.top})`);
 
     this.paths = new Array(this.numLines);
     for (let i = 0; i < this.numLines; i++) {
