@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@types/csv-parse": "^1.1.12",
-    "@types/d3": "^3.5.34",
+    "@types/d3": "^3.5.16",
     "concat": "^1.0.3",
     "concurrently": "3.1.0",
     "copyfiles": "1.0.0",
