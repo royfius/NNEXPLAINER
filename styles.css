@@ -351,6 +351,11 @@ header h1 .optional {
   pointer-events: none;
 }
 
+/* Hide Problem selector */
+#top-controls .control.ui-problem .select {
+  display: none;
+}
+
 /* Hover card */
 #hovercard {
   display: none;
