@@ -747,6 +747,11 @@ g.column rect {
   left: -2px;
 }
 
+#network .canvas .line {
+  border: 2px solid #f59322;
+  border-radius: 3px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
 /* Hidden layers column */
 
 .hidden-layers.column {

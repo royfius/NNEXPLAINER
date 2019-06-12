@@ -55,6 +55,7 @@ const RECT_SIZE = 30;
 const BIAS_SIZE = 5;
 const NUM_SAMPLES_CLASSIFY = 500;
 const NUM_SAMPLES_REGRESS = 1200;
+const BLUE_COLOR = "#0877bd";
 let DENSITY = 100;
 let INPUT_DIM = 0;
 
@@ -206,7 +207,7 @@ let linkWidthScale = d3.scale.linear()
   .clamp(true);
 let colorScale = d3.scale.linear<string, number>()
                      .domain([-1, 0, 1])
-                     .range(["#f59322", "#e8eaeb", "#0877bd"])
+                     .range(["#f59322", "#e8eaeb", BLUE_COLOR])
                      .clamp(true);
 let iter = 0;
 let lossTrain = 0;
@@ -215,8 +216,9 @@ let trainOutput = [];
 let testOutput = [];
 
 let player = new Player();
-let lineChart = new AppendingLineChart(d3.select("#linechart"),
-    ["#777", "black"]);
+let selLineChart = d3.select("#linechart");
+let lineChartNode = selLineChart.node() as HTMLElement;
+let lineChart = new AppendingLineChart(selLineChart, lineChartNode.offsetWidth, lineChartNode.offsetHeight, ["#777", "black"]);
 
 
 
@@ -589,7 +591,7 @@ function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
       });
   }
 
-    if (!isInput) {}
+  if (!isInput) {}
   // Draw the node's canvas.
   let div = d3.select("#network").insert("div", ":first-child")
     .attr({
@@ -629,29 +631,28 @@ function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
     div.classed(activeOrNotClass, true);
   }
 
+  if (isInput) {
+      let linechart = div.insert("div", ":last-child")
+          .classed("line", true)
+          .style({
+              "position": "absolute",
+              "left": "0",
+              "top": "0"
+          });
+      let lines = new AppendingLineChart(linechart, _RECT_SIZE, _RECT_SIZE, [BLUE_COLOR]);
+
+      for (let i = 0; i < data_series.length; i++) {
+          lines.addDataPoint([data_series[i]]);
+      }
+
+  }
+  if (!isInput) {
     let nodeHeatMap = new HeatMap(_RECT_SIZE, DENSITY / 10, xDomain,
-                                  xDomain, div, {noSvg: true});
-    if (isInput) {
-        let linechart = div.insert("div", ":last-child")
-            .attr({
-                "width": _RECT_SIZE,
-                "height": _RECT_SIZE})
-            .style({
-                "position": "absolute",
-                "left": "0",
-                "top": "0"
-            });
-        let lines = new AppendingLineChart(div, ["black"]);
+      xDomain, div, {noSvg: true});
 
-        for (let i = 0; i < data_series.length; i++) {
-            lines.addDataPoint([data_series[i]]);
-        }
-
-    }
-    if (!isInput) {
-        div.datum({heatmap: nodeHeatMap, id: nodeId});
-    }
-    
+    div.datum({heatmap: nodeHeatMap, id: nodeId});
+  }
+  
 }
 
 // Draw network

@@ -36,13 +36,13 @@ export class AppendingLineChart {
   private minY = Number.MAX_VALUE;
   private maxY = Number.MIN_VALUE;
 
-  constructor(container, lineColors: string[]) {
+  constructor(container, xSize: number, ySize: number, lineColors: string[]) {
     this.lineColors = lineColors;
     this.numLines = lineColors.length;
     let node = container.node() as HTMLElement;
-    let totalWidth = node.offsetWidth;
-    let totalHeight = node.offsetHeight;
-    let margin = {top: 0, right: 0, bottom: 2, left: 2};
+    let totalWidth = xSize;
+    let totalHeight = ySize;
+    let margin = {top: 2, right: 2, bottom: 2, left: 2};
     let width = totalWidth - margin.left - margin.right;
     let height = totalHeight - margin.top - margin.bottom;
 
