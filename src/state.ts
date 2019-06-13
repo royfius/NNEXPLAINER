@@ -41,13 +41,14 @@ export let datasets: {[key: string]: dataset.DataGenerator} = {
     "xor": dataset.classifyXORData,
     "gauss": dataset.classifyTwoGaussData,
     "spiral": dataset.classifySpiralData,
-    "csv": csvdataset.loadCsv
+    //"csv": csvdataset.loadCsv
 };
 
 /** A map between dataset names and functions that generate regression data. */
 export let regDatasets: {[key: string]: dataset.DataGenerator} = {
-    "reg-plane": dataset.regressPlane,
-    "reg-gauss": dataset.regressGaussian,
+    //"reg-plane": dataset.regressPlane,
+    //"reg-gauss": dataset.regressGaussian,
+    "default-csv": csvdataset.defaultDataLoad,
     "csv": csvdataset.loadCsv
 };
 
@@ -164,7 +165,7 @@ export class State {
   cosY = false;
   sinY = false;
   dataset: dataset.DataGenerator = dataset.classifyCircleData;
-  regDataset: dataset.DataGenerator = dataset.regressPlane;
+  regDataset: dataset.DataGenerator = csvdataset.defaultDataLoad;
   seed: string;
 
   /**

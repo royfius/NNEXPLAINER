@@ -1,16 +1,32 @@
 
 import * as dataset from "./dataset";
 import * as CSV from 'csv-string';
-
+import * as d3 from "d3";
 import * as playground from "./playground";
+
+/** Default dataset to be used – mention relative file path */
+const DEFAULT_DATA_FILE_PATH = "../Playground_Dataset.csv";
 
 class LoadedCsvDataset {
     public header: string[] = [];
     public points: dataset.Example2D [] = [];
     public error: string = "";
     public warning: string = "";
-
 }
+
+export type CSVDataset = {
+    header: string[];
+    points: dataset.Example2D[];
+    error: string;
+    warning: string;
+};
+
+export let DEFAULT_CSV_DATASET: CSVDataset = {
+    header: [],
+    points: [],
+    error: "",
+    warning: ""
+};
 
 class FileLoader {
     public fileSelector = document.createElement("input");
@@ -109,7 +125,6 @@ class FileLoader {
 // Has proven an unexpected challenge;
 let fileLoader1 = new FileLoader;
 
-
 function parse_csv_data(csvdata): LoadedCsvDataset {
 
     let data = new LoadedCsvDataset;
@@ -174,6 +189,84 @@ function parse_csv_data(csvdata): LoadedCsvDataset {
     return data;
 }
 
+/**
+ * Read a CSV file
+ * @param sFileName Filename of the CSV file to read
+ * @returns Promise
+ */
+function readCSVFile(sFilePath): Promise<any> {
+
+    return new Promise<any>((resolve, reject) => {
+
+        d3.csv(sFilePath, function(error, rows: object[]) { 
+            if(error){
+                reject(error);
+                return false;
+            }
+            resolve(rows);
+        });
+    });
+
+}
+
+/**
+ * Load default dataset and store in the class
+ * First reads Playground_Dataset.csv. If not found,
+ * generates random dataset
+ */
+export async function loadDefaultCSV(): Promise<any>{
+    
+    let output: LoadedCsvDataset;
+    
+    try {
+        // read the CSV
+        const aRows: Object[] = await readCSVFile(DEFAULT_DATA_FILE_PATH);
+
+        // format dataset so that parse_csv_data can process it
+        let aData = aRows.map(function(d){
+            return d3.values(d);
+        });
+
+        // Add header
+        aData.unshift(Object.keys(aRows[0]));
+
+        output = parse_csv_data(aData);
+
+    }catch(err){
+        output.error = "Error: CSV file read. " + err;
+    }
+
+    // Now we check if data actually exists: datapoints and labels;
+    if(output.error){
+        // Load with default generated dataset
+        output.points = dataset.regressGaussian(200, 0);
+        output.error = "";
+        output.warning = "Error reading default data file. Using randomly generated dataset";
+        output.header = [];
+    }
+
+    return DEFAULT_CSV_DATASET = output;
+}
+
+/**
+ * Return default data point
+ */
+export function defaultDataLoad(): dataset.Example2D[] {
+    return loadDefaultDataPoints();
+}
+
+/**
+ * Return default dataset points
+ */
+export function loadDefaultDataPoints(): dataset.Example2D[] {
+
+    // Ideally, the default dataset should have been loaded at this point.
+    // If not, load the dataset
+    if(!DEFAULT_CSV_DATASET.points.length){
+        DEFAULT_CSV_DATASET.points = makeThumbnail(200, 0);
+    }
+    return DEFAULT_CSV_DATASET.points;
+}
 
 // This is the function called by the playground when user wants to load csv data!
 export function loadCsv(numSamples: number, noise: number):
@@ -186,7 +279,6 @@ dataset.Example2D[] {
 
     fileLoader1.launch(true);
 
-
     return points;
 
 }
@@ -195,7 +287,6 @@ export function makeThumbnail(numSamples: number, noise: number):
 dataset.Example2D[] {
 
     let points: dataset.Example2D [] = [];
-
 
 
     // letter C;

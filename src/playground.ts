@@ -220,27 +220,6 @@ let selLineChart = d3.select("#linechart");
 let lineChartNode = selLineChart.node() as HTMLElement;
 let lineChart = new AppendingLineChart(selLineChart, lineChartNode.offsetWidth, lineChartNode.offsetHeight, ["#777", "black"]);
 
-
-
-export function loadDataset(newDataset) {
-
-    let regDataThumbnails = d3.selectAll("canvas[data-regDataset]");
-    state.regDataset = newDataset;
-
-
-
-    regDataThumbnails.classed("selected", false);
-    //d3.select(this).classed("selected", true);
-    generateData();
-    parametersChanged = true;
-    makeGUI();
-    reset();
-
-
-}
-
-
-
 function makeGUI() {
   d3.select("#reset-button").on("click", () => {
     reset();
@@ -298,6 +277,7 @@ function makeGUI() {
   let regDataThumbnails = d3.selectAll("canvas[data-regDataset]");
   regDataThumbnails.on("click", function() {
     let newDataset = regDatasets[this.dataset.regdataset];
+    
     if (newDataset === state.regDataset) {
       return; // No-op.
     }
@@ -705,7 +685,7 @@ function drawNetwork(network: nn.Node[][]): void {
         for (let idx = 0; idx < data_size; idx++) {
             inputValues.push(trainData[idx].p[i]);
         }
-        drawNode(cx, cy, nodeId, true, container, node = null, inputValues);
+        drawNode(cx, cy, nodeId, true, container, null, inputValues);
     });
 
   // Draw the intermediate layers.
@@ -1125,6 +1105,12 @@ function reset(onStartup = false) {
     let numInputs = constructInput(trainData[0]).length;
 
     // console.log("nbinputs:", numInputs);
+    /**
+     * Make number of features/neurons in first layer same as the 
+     * number of input features/attributes
+     */
+    state.networkShape[0] = numInputs;
+     
     let shape = [numInputs].concat(state.networkShape).concat([1]);
     let outputActivation = (state.problem === Problem.REGRESSION) ?
         nn.Activations.LINEAR : nn.Activations.TANH;
@@ -1136,7 +1122,7 @@ function reset(onStartup = false) {
     [lossTrain, trainOutput] = getLoss(network, trainData);
     [lossTest, testOutput] = getLoss(network, testData);
 
-    console.log("Global reset.");
+    console.log("Global reset.", state.networkShape);
     drawNetwork(network);
     updateUI(true);
 };
@@ -1185,10 +1171,27 @@ function drawDatasetThumbnails() {
 
     function manageThumbnail(canvas, datasetName, datasetGroup) {
         // reg-csv dataset has a thumbnail generator that is not the actual data generator;
-        if (datasetName == "csv") {
-            renderThumbnail(canvas, csvdataset.makeThumbnail);
-        }
-        else {
+        if (datasetName == "default-csv") {
+          
+          //(function _buildThumbnail (_canvas: HTMLCanvasElement){
+            /*
+            csvdataset.loadDefaultDataPoints(function(points: Example2D[]){
+
+              renderThumbnail(_canvas, function(){
+                return points;
+              });
+              
+            });
+            */
+            renderThumbnail(canvas, csvdataset.loadDefaultDataPoints);
+
+          //})(canvas);
+
+        } else if (datasetName == "csv") {
+
+          renderThumbnail(canvas, csvdataset.makeThumbnail);
+
+        } else {
             let dataGenerator = datasetGroup[datasetName];
             renderThumbnail(canvas, dataGenerator);
         }
@@ -1342,9 +1345,12 @@ function simulationStarted() {
   parametersChanged = false;
 }
 
-drawDatasetThumbnails();
-initTutorial();
-makeGUI();
-generateData(true);
-reset(true);
-hideControls();
+// Load default dataset
+csvdataset.loadDefaultCSV().then(function(){
+  drawDatasetThumbnails();
+  initTutorial();
+  makeGUI();
+  generateData(true);
+  reset(true);
+  hideControls();
+});
