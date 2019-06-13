@@ -216,7 +216,7 @@ function readCSVFile(sFilePath): Promise<any> {
  */
 export async function loadDefaultCSV(): Promise<any>{
     
-    let output: LoadedCsvDataset;
+    let output: LoadedCsvDataset = DEFAULT_CSV_DATASET;
     
     try {
         // read the CSV
