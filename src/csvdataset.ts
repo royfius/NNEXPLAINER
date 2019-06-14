@@ -28,102 +28,114 @@ export let DEFAULT_CSV_DATASET: CSVDataset = {
     warning: ""
 };
 
+export let USER_CSV_DATASET: CSVDataset = {
+    header: [],
+    points: [],
+    error: "",
+    warning: ""
+};
+
+
 class FileLoader {
+
     public fileSelector = document.createElement("input");
     public csvdata = [];
 
-    launch(askForNewFile: boolean = false, previousData: any[] = []) {
-        this.fileSelector.setAttribute("type", "file");
-        this.fileSelector.setAttribute("multiple", "multiple");
+    launch(askForNewFile: boolean = false, previousData: any[] = []): Promise<CSVDataset> {
 
-        console.log("Launching...");
+        return new Promise<CSVDataset>((resolve, reject) => {
 
-        this.fileSelector.addEventListener("change", () => {
+            this.fileSelector.setAttribute("type", "file");
+            //this.fileSelector.setAttribute("multiple", "multiple");
 
-            // Make the loaded files a list;
-            let files = [];
-            Array.prototype.forEach.call(this.fileSelector.files,
-                                         file => files.push(file));
+            console.log("Launching...");
 
-            if (files.length > 1) {
-                // Ask user if order is correct;
-                let response = confirm("Is this " + files[1].name + " the label file? ");
-                if (!response) {
-                    files = files.reverse();
+            this.fileSelector.addEventListener("change", () => {
+
+                // Make the loaded files a list;
+                let files = [];
+                Array.prototype.forEach.call(this.fileSelector.files,
+                                            file => files.push(file));
+
+                if (files.length > 1) {
+                    // Ask user if order is correct;
+                    let response = confirm("Is this " + files[1].name + " the label file? ");
+                    if (!response) {
+                        files = files.reverse();
+                    }
                 }
-            }
 
-            let fullCsvData = [];
+                let fullCsvData = [];
 
-            for (let f = 0; f < files.length; f++) {
-                let file = files[f];
+                for (let f = 0; f < files.length; f++) {
+                    let file = files[f];
 
-                if (file.name.match(/\.(csv)$/)) {
+                    if (file.name.match(/\.(csv)$/)) {
 
-                    let reader = new FileReader();
+                        let reader = new FileReader();
 
-                    reader.onload = () => {
-                        let res = reader.result;
+                        reader.onload = () => {
+                            let res = reader.result;
 
-                        let csvdata = CSV.parse(res);
+                            let csvdata = CSV.parse(res);
 
-                        if (fullCsvData.length) {
-                            if (fullCsvData.length != csvdata.length) {
-                                alert("Failed... incompatible data by length.");
-                                return;
-                            }
-
-                            // Concatenate all columns!
-                            for (let i = 0; i < fullCsvData.length; i++) {
-                                fullCsvData[i] = fullCsvData[i].concat(csvdata[i]);
-                            }
-
-
-                        } else {
-                            // Or just initialize fullCsvData...
-                            fullCsvData = csvdata;
-                            console.log(fullCsvData);
-                        }
-                        // Apply data on last file!;
-                        if (f === files.length - 1) {
-
-                            console.log("Loading dataset!");
-                            let csvoutput = parse_csv_data(fullCsvData);
-
-                            // Only update the loaded dataset if valid data is retrieved from file;
-                            // I.E. no error message returns from parse_csv_data();
-                            if (csvoutput.error) {
-                                alert(".CSV file loader failed due to " + csvoutput.error);
-                            } else {
-
-                                if (csvoutput.warning) {
-                                    alert("Warning: " + csvoutput.warning);
+                            if (fullCsvData.length) {
+                                if (fullCsvData.length != csvdata.length) {
+                                    alert("Failed... incompatible data by length.");
+                                    return;
                                 }
-                                // Now we check if data actually exists: datapoints and labels;
-                                // All good: update dataset!
-                                playground.updateData(csvoutput.header, csvoutput.points);
+
+                                // Concatenate all columns!
+                                for (let i = 0; i < fullCsvData.length; i++) {
+                                    fullCsvData[i] = fullCsvData[i].concat(csvdata[i]);
+                                }
+
+
+                            } else {
+                                // Or just initialize fullCsvData...
+                                fullCsvData = csvdata;
+                                console.log(fullCsvData);
                             }
-                        }
-                    };
+                            // Apply data on last file!;
+                            if (f === files.length - 1) {
 
-                    reader.readAsText(file);
-                } else {
-                    alert("File not supported. Please select a .csv file.");
+                                console.log("Loading dataset!");
+                                let csvoutput = parse_csv_data(fullCsvData);
+
+                                // Only update the loaded dataset if valid data is retrieved from file;
+                                // I.E. no error message returns from parse_csv_data();
+                                if (csvoutput.error) {
+                                    reject(getDefaultData());
+                                    alert(".CSV file loader failed due to " + csvoutput.error);
+                                } else {
+
+                                    resolve(USER_CSV_DATASET = csvoutput);
+
+                                    if (csvoutput.warning) {
+                                        alert("Warning: " + csvoutput.warning);
+                                    }
+                                    
+                                }
+                            }
+                        };
+
+                        reader.readAsText(file);
+                    } else {
+                        reject(getDefaultData());
+                        alert("File not supported. Please select a .csv file.");
+                    }
                 }
-            }
 
-            console.log(fullCsvData.length);
+                console.log(fullCsvData.length);
+
+            });
+
+            // Open file dialog
+            this.fileSelector.click();
 
         });
-
-        this.fileSelector.click();
     }
 }
-
-// This holds both loadable csv data.
-// The use of global variables is questionable but loading this
-// Has proven an unexpected challenge;
-let fileLoader1 = new FileLoader;
 
 function parse_csv_data(csvdata): LoadedCsvDataset {
 
@@ -255,10 +267,14 @@ export function defaultDataLoad(): dataset.Example2D[] {
     return loadDefaultDataPoints();
 }
 
+function getDefaultData(): CSVDataset {
+    return DEFAULT_CSV_DATASET;
+}
+
 /**
  * Return default dataset points
  */
-export function loadDefaultDataPoints(): dataset.Example2D[] {
+function loadDefaultDataPoints(): dataset.Example2D[] {
 
     // Ideally, the default dataset should have been loaded at this point.
     // If not, load the dataset
@@ -269,17 +285,26 @@ export function loadDefaultDataPoints(): dataset.Example2D[] {
 }
 
 // This is the function called by the playground when user wants to load csv data!
+// We return either the last loaded file's dataset or the default dataset 
 export function loadCsv(numSamples: number, noise: number):
 dataset.Example2D[] {
 
-    let points: dataset.Example2D [] =
-        dataset.regressGaussian(numSamples, noise);
-
-    console.log("numSamples: ", numSamples);
-
-    fileLoader1.launch(true);
+    let points: dataset.Example2D [] = USER_CSV_DATASET.points.length ? USER_CSV_DATASET.points : loadDefaultDataPoints();
 
     return points;
+
+}
+
+/**
+ * Load a CSV file by launching a File upload dialog
+ * @returns {Promise<CSVDataset>}   Promise resolves to the uploaded file's processed dataset. 
+ *                                  Reject returns the last/default dataset.
+ */
+export function loadCSVFile(): Promise<CSVDataset>{
+    // Instantiate FileLoader
+    const CSVFileLoader = new FileLoader;
+
+    return CSVFileLoader.launch(true);
 
 }
 

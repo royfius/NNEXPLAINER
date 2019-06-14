@@ -142,10 +142,10 @@ export class State {
   regularizationRate = 0;
   showTestData = false;
   noise = 0;
-  batchSize = 10;
+  batchSize = 25;
   discretize = false;
   tutorial: string = null;
-  percTrainData = 50;
+  percTrainData = 75;
   activation = nn.Activations.TANH;
   regularization: nn.RegularizationFunction = null;
   problem = Problem.REGRESSION;

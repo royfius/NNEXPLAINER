@@ -276,19 +276,43 @@ function makeGUI() {
 
   let regDataThumbnails = d3.selectAll("canvas[data-regDataset]");
   regDataThumbnails.on("click", function() {
-    let newDataset = regDatasets[this.dataset.regdataset];
     
-    if (newDataset === state.regDataset) {
+    const sDatasetType = this.dataset.regdataset,
+    newDataset = regDatasets[sDatasetType],
+    isSelected = d3.select(this).classed("selected");
+    
+    // Allow clicking on Load CSV dataset so that CSV files 
+    // can be loaded multiple times
+    if ( isSelected && sDatasetType != "csv" && newDataset === state.regDataset) {
       return; // No-op.
     }
 
-
-    state.regDataset = newDataset;
+    //state.regDataset = newDataset;
     regDataThumbnails.classed("selected", false);
     d3.select(this).classed("selected", true);
-    generateData();
-    parametersChanged = true;
-    reset();
+
+    // For User loaded CSV, do not generated any model yet.
+    // It will be generated post the file is processed
+    // Prompt the File selection dialog
+    if( sDatasetType === "csv"){
+
+      function _updateData(csvOutput: csvdataset.CSVDataset): void{
+        updateData(csvOutput.header, csvOutput.points);
+      }
+      
+      csvdataset.loadCSVFile()
+        .then(_updateData)
+        .catch(_updateData);
+
+    }else{
+
+      state.regDataset = newDataset;
+      generateData();
+      parametersChanged = true;
+      reset();
+
+    }
+
   });
 
   let regDatasetKey = getKeyFromValue(regDatasets, state.regDataset);
@@ -1171,26 +1195,10 @@ function drawDatasetThumbnails() {
 
     function manageThumbnail(canvas, datasetName, datasetGroup) {
         // reg-csv dataset has a thumbnail generator that is not the actual data generator;
-        if (datasetName == "default-csv") {
-          
-          //(function _buildThumbnail (_canvas: HTMLCanvasElement){
-            /*
-            csvdataset.loadDefaultDataPoints(function(points: Example2D[]){
-
-              renderThumbnail(_canvas, function(){
-                return points;
-              });
-              
-            });
-            */
-            renderThumbnail(canvas, csvdataset.loadDefaultDataPoints);
-
-          //})(canvas);
-
+        if (datasetName == "default-csv") {          
+            renderThumbnail(canvas, csvdataset.defaultDataLoad);
         } else if (datasetName == "csv") {
-
           renderThumbnail(canvas, csvdataset.makeThumbnail);
-
         } else {
             let dataGenerator = datasetGroup[datasetName];
             renderThumbnail(canvas, dataGenerator);
@@ -1264,15 +1272,16 @@ function generateData(firstTime = false) {
     state.serialize();
     userHasInteracted();
   }
-    Math.seedrandom(state.seed);
-    let numSamples = (state.problem === Problem.REGRESSION) ?
-        NUM_SAMPLES_REGRESS : NUM_SAMPLES_CLASSIFY;
-    let generator = state.problem === Problem.CLASSIFICATION ?
-        state.dataset : state.regDataset;
+  Math.seedrandom(state.seed);
+  
+  let numSamples = (state.problem === Problem.REGRESSION) ?
+      NUM_SAMPLES_REGRESS : NUM_SAMPLES_CLASSIFY;
+  let generator = state.problem === Problem.CLASSIFICATION ?
+      state.dataset : state.regDataset;
 
-    let data = generator(numSamples, state.noise / 100);
+  let data = generator(numSamples, state.noise / 100);
 
-    updateData([], data);
+  updateData([], data);
 }
 
 export function updateData(headers, data) {
