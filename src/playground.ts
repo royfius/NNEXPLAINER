@@ -297,6 +297,8 @@ function makeGUI() {
     if( sDatasetType === "csv"){
 
       function _updateData(csvOutput: csvdataset.CSVDataset): void{
+        // Update number of neurons
+        state.networkShape[0] = constructInput(csvOutput.points[0]).length;
         updateData(csvOutput.header, csvOutput.points);
       }
       
@@ -1131,9 +1133,9 @@ function reset(onStartup = false) {
     // console.log("nbinputs:", numInputs);
     /**
      * Make number of features/neurons in first layer same as the 
-     * number of input features/attributes
+     * number of input features/attributes or more if explicitly added
      */
-    state.networkShape[0] = numInputs;
+    state.networkShape[0] = Math.max(numInputs, state.networkShape[0]);
      
     let shape = [numInputs].concat(state.networkShape).concat([1]);
     let outputActivation = (state.problem === Problem.REGRESSION) ?
@@ -1266,11 +1268,15 @@ function hideControls() {
 }
 
 function generateData(firstTime = false) {
+  let header = [];
   if (!firstTime) {
     // Change the seed.
     state.seed = Math.random().toFixed(5);
     state.serialize();
     userHasInteracted();
+  }else{
+    // get default headers
+    header = csvdataset.DEFAULT_CSV_DATASET.header;
   }
   Math.seedrandom(state.seed);
   
@@ -1281,7 +1287,7 @@ function generateData(firstTime = false) {
 
   let data = generator(numSamples, state.noise / 100);
 
-  updateData([], data);
+  updateData(header, data);
 }
 
 export function updateData(headers, data) {
