@@ -3,6 +3,7 @@ import * as dataset from "./dataset";
 import * as CSV from 'csv-string';
 import * as d3 from "d3";
 import * as playground from "./playground";
+import { Interface } from "readline";
 
 /** Default dataset to be used – mention relative file path */
 const DEFAULT_DATA_FILE_PATH = "../Playground_Dataset.csv";
@@ -35,15 +36,21 @@ export let USER_CSV_DATASET: CSVDataset = {
     warning: ""
 };
 
+export type CallbackPayload = {
+    header: string[];
+    callback: Function;
+}
 
 class FileLoader {
 
     public fileSelector = document.createElement("input");
     public csvdata = [];
+    private readCSVData = [];
+    private aSelectedHeaderColumns = [];
 
-    launch(askForNewFile: boolean = false, previousData: any[] = []): Promise<CSVDataset> {
+    launch(askForNewFile: boolean = false, previousData: any[] = []): Promise<CallbackPayload> {
 
-        return new Promise<CSVDataset>((resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             this.fileSelector.setAttribute("type", "file");
             //this.fileSelector.setAttribute("multiple", "multiple");
@@ -94,28 +101,17 @@ class FileLoader {
                             } else {
                                 // Or just initialize fullCsvData...
                                 fullCsvData = csvdata;
-                                console.log(fullCsvData);
                             }
                             // Apply data on last file!;
                             if (f === files.length - 1) {
 
                                 console.log("Loading dataset!");
-                                let csvoutput = parse_csv_data(fullCsvData);
+                                this.readCSVData = fullCsvData;
 
-                                // Only update the loaded dataset if valid data is retrieved from file;
-                                // I.E. no error message returns from parse_csv_data();
-                                if (csvoutput.error) {
-                                    reject(getDefaultData());
-                                    alert(".CSV file loader failed due to " + csvoutput.error);
-                                } else {
-
-                                    resolve(USER_CSV_DATASET = csvoutput);
-
-                                    if (csvoutput.warning) {
-                                        alert("Warning: " + csvoutput.warning);
-                                    }
-                                    
-                                }
+                                resolve({
+                                    header: getFileHeaderColumns(fullCsvData[0]),
+                                    callback: this.processFileData.bind(this)
+                                });
                             }
                         };
 
@@ -135,12 +131,55 @@ class FileLoader {
 
         });
     }
+
+    processFileData(aHeaderColumns = []): CSVDataset{
+        
+        let csvoutput = parse_csv_data(this.readCSVData, this.aSelectedHeaderColumns = aHeaderColumns);
+
+        // Only update the loaded dataset if valid data is retrieved from file;
+        // I.E. no error message returns from parse_csv_data();
+        if (csvoutput.error) {
+            alert("CSV file loader failed due to " + csvoutput.error);
+            return getDefaultData();
+        } else {
+
+            if (csvoutput.warning) {
+                alert("Warning: " + csvoutput.warning);
+            }
+
+            return USER_CSV_DATASET = csvoutput;
+        }
+        
+    }
 }
 
-function parse_csv_data(csvdata): LoadedCsvDataset {
+function getFileHeaderColumns(row: string[] = []){
+    const aHeader = [];
+    if(row.length && isNaN(parseFloat(row[0]))) {
+        return row;
+    }
+    return aHeader;
+}
+
+function parse_csv_data(csvdata, aSelectedColumns: string[] = []): LoadedCsvDataset {
 
     let data = new LoadedCsvDataset;
 
+    let aFileHeader:string[] = csvdata.length ? getFileHeaderColumns(csvdata[0]) : [],
+    bHeaderExists = aFileHeader.length > 0,
+    aSelectedColumnsIndex = [];
+
+    // if no columns are selected by the user, default to max limit
+    if(!aSelectedColumns.length && bHeaderExists){
+        aSelectedColumns = aFileHeader.slice(0, playground.MAX_INPUT);
+    }
+
+    // Determine the index of selected columns in a data row
+    aSelectedColumnsIndex = aSelectedColumns.map(function(s: string){
+        return aFileHeader.indexOf(s);
+    });
+
+    // TODO: What if there exist no columns?
 
     // This makes a result a error-report result;
     let invalidErrorMessage = (value, i, j) => {
@@ -162,41 +201,63 @@ function parse_csv_data(csvdata): LoadedCsvDataset {
         return value;
     };
 
-    for (let i = 0; i < csvdata.length; i++) {
+    if(bHeaderExists){
+        
+        data.header = aSelectedColumns;
 
+        for (let i = 1; i < csvdata.length; i++) {
 
-        let atHeader = false;
-        let p = [];
-        for (let j = 0; j < csvdata[i].length - 1; j++) {
+            let atHeader = false;
+            let p = [];
+            let iRowLength :number = aSelectedColumnsIndex.length - 1;
 
-            // PARSE HEADER;
-            if (i == 0) {
-                if (isNaN(parseFloat(csvdata[i][j]))) {
-                    if (j < csvdata[i].length - 1) {
-                        data.header.push(csvdata[i][j]);
-                    }
-                    atHeader = true;
-                }
-            }
-
-            // PARSE DATA VALUES;
-            if (!atHeader) {
+            for (let j = 0; j < iRowLength; j++) {
+                
+                // PARSE DATA VALUES;
                 let value = parseDatapoint(i, j);
                 p.push(value);
             }
+    
+            // PARSE LABEL;
+            let j = iRowLength;
+            let label = parseDatapoint(i, j);
+            data.points.push({p, dim: iRowLength, label});
         }
 
-        // PARSE LABEL;
-        if (!atHeader) {
-            let j = csvdata[i].length - 1;
-            let label = parseDatapoint(i, j);
-            data.points.push({p, dim: csvdata[i].length - 1, label});
+    }else{
+
+        for (let i = 0; i < csvdata.length; i++) {
+
+            let atHeader = false;
+            let p = [];
+            let iRowLength: number = csvdata[i].length - 1;
+
+            for (let j = 0; j < iRowLength; j++) {
+                
+                // PARSE HEADER;
+                if (i == 0) {
+                   data.header = aFileHeader;
+                   atHeader = data.header.length > 0;
+                }
+    
+                // PARSE DATA VALUES;
+                if (!atHeader) {
+                    let value = parseDatapoint(i, j);
+                    p.push(value);
+                }
+            }
+    
+            // PARSE LABEL;
+            if (!atHeader) {
+                let j = iRowLength;
+                let label = parseDatapoint(i, j);
+                data.points.push({p, dim: iRowLength, label});
+            }
         }
+
     }
 
-    console.log(data.points);
-
-
+    //console.log(data.points);
 
     return data;
 }
@@ -300,7 +361,7 @@ dataset.Example2D[] {
  * @returns {Promise<CSVDataset>}   Promise resolves to the uploaded file's processed dataset. 
  *                                  Reject returns the last/default dataset.
  */
-export function loadCSVFile(): Promise<CSVDataset>{
+export function loadCSVFile(): Promise<Object>{
     // Instantiate FileLoader
     const CSVFileLoader = new FileLoader;
 

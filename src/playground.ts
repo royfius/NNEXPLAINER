@@ -32,6 +32,8 @@ import * as d3 from "d3";
 
 import * as csvdataset from "./csvdataset";
 import * as evaluation from "./evaluation";
+import dialogPolyfill from 'dialog-polyfill'
+
 
 let mainWidth;
 
@@ -58,6 +60,7 @@ const NUM_SAMPLES_REGRESS = 1200;
 const BLUE_COLOR = "#0877bd";
 let DENSITY = 100;
 let INPUT_DIM = 0;
+export const MAX_INPUT :number = 16;
 
 enum HoverType {
   BIAS, WEIGHT
@@ -182,6 +185,7 @@ let testData: Example2D[] = [];
 let network: nn.Node[][] = null;
 
 let INPUTS = loadFeatures(3, []);
+let CSV_SELECTED_COLUMNS: String[] = [];
 
 // Filter out inputs that are hidden.
 state.getHiddenProps().forEach(prop => {
@@ -303,7 +307,20 @@ function makeGUI() {
       }
       
       csvdataset.loadCSVFile()
-        .then(_updateData)
+        .then(function csvFileLoaded(oPayload: csvdataset.CallbackPayload){
+          
+          // 1. Open Attribute/Column selection dialog
+          openCSVColumnSelectionDialog(oPayload.header)
+            .then(function(aSelectedColumns){
+              console.log('Columns selected dialog');
+              // Process the dataset with selected headers
+              _updateData(oPayload.callback(aSelectedColumns));
+            })
+            .catch(function(error){
+              // Do Nothing
+            });
+
+        })
         .catch(_updateData);
 
     }else{
@@ -835,6 +852,65 @@ function addPlusMinusControl(x: number, layerIdx: number) {
   div.append("div").text(
     state.networkShape[i] + " neuron" + suffix
   );
+}
+
+/**
+ * Once the CSV is uploaded, open the attribute/column selection dialog
+ */
+export function openCSVColumnSelectionDialog(header: String[]): Promise<String[]>{
+  
+  return new Promise((resolve, reject) => {
+
+    const dialog: HTMLDialogElement = document.querySelector("#column-selection-dialog"),
+    list = d3.select("#column-selection-dialog ul"),
+    btnOkay = dialog.querySelector(".mdl-button--ok"),
+    btnCancel = dialog.querySelector(".mdl-button--cancel");
+
+    if (!dialog.showModal) {
+      dialogPolyfill.registerDialog(dialog);
+    }
+
+    // empty
+    list.html("");
+
+    list.selectAll('li')
+    .data(header)
+      .enter().append("li")
+      .classed("mdl-list__item", true)
+      .html(function(sColumn, i){
+        return `<label class="mdl-checkbox mdl-js-checkbox" for="checkbox-${i}">
+        <input type="checkbox" id="checkbox-${i}" class="mdl-checkbox__input" ${ i < 5 ? "checked": ""} value="${sColumn}" }>
+        <span class="mdl-checkbox__label">${sColumn}</span>
+      </label>`
+      });
+
+    // Show the dialog
+    dialog.showModal();
+
+    // Bind event to confirm the selected columns
+    btnOkay.addEventListener('click', function() {
+
+      // reset
+      CSV_SELECTED_COLUMNS = [];
+
+      // Get all selected columns and set the variable
+      list.selectAll("input:checked")
+      .each(function(d){
+        CSV_SELECTED_COLUMNS.push(this.value);
+      });
+      
+      dialog.close();
+
+      resolve(CSV_SELECTED_COLUMNS);
+    });
+
+    // Cancel button
+    btnCancel.addEventListener('click', function() {
+      dialog.close();
+      reject([]);
+    });
+
+  });
 }
 
 function updateHoverCard(type: HoverType, nodeOrLink?: nn.Node | nn.Link,
