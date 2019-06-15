@@ -310,7 +310,8 @@ header h1 .optional {
   position: relative;
 }
 
-#top-controls .control select {
+#top-controls .control select,
+.select select {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -326,11 +327,13 @@ header h1 .optional {
   outline: none;
 }
 
-#top-controls .control select:focus {
+#top-controls .control select:focus,
+.select select:focus {
   border-bottom-color: #183D4E;
 }
 
-#top-controls .control .select::after {
+#top-controls .control .select::after,
+.select::after {
   class: "material-icons";
   content: "arrow_drop_down";
   color: #999;
@@ -1003,4 +1006,17 @@ footer .links a:hover {
 /* Keep grey focus circle for non-start values */
 #main-part .mdl-slider.is-upgraded:focus:not(:active)::-webkit-slider-thumb {
   box-shadow: 0 0 0 10px rgba(0,0,0, 0.12);
+}
+
+/* CSV Column selection dialog */
+#column-selection-dialog .sub-heading {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+#column-selection-dialog .select {
+  position: relative;
+}
+#column-selection-dialog ol select{
+  display: block;
+  width: 100%;
 }

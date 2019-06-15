@@ -857,14 +857,36 @@ function addPlusMinusControl(x: number, layerIdx: number) {
 /**
  * Once the CSV is uploaded, open the attribute/column selection dialog
  */
-export function openCSVColumnSelectionDialog(header: String[]): Promise<String[]>{
+export function openCSVColumnSelectionDialog(header: String[] = []): Promise<String[]>{
   
   return new Promise((resolve, reject) => {
 
     const dialog: HTMLDialogElement = document.querySelector("#column-selection-dialog"),
     list = d3.select("#column-selection-dialog ul"),
+    outputSelect = d3.select("#column-selection-dialog select"),
     btnOkay = dialog.querySelector(".mdl-button--ok"),
     btnCancel = dialog.querySelector(".mdl-button--cancel");
+
+    // by default consider the last column as the Target/Output column
+    let sTarget = header.pop(),
+    oTargetColumns = d3.map([sTarget], function(d :string){ return d; });
+
+    function updateOutputSelect(){
+
+      const opts = outputSelect.selectAll("option")
+        .data(oTargetColumns.keys());
+
+      opts.exit().remove();
+
+      opts.enter()
+        .append("option")
+        .attr("value", (d)=> d)
+        .text((d)=> d);
+
+      opts.attr("value", (d)=> d)
+        .text((d)=> d);
+
+    }
 
     if (!dialog.showModal) {
       dialogPolyfill.registerDialog(dialog);
@@ -879,10 +901,24 @@ export function openCSVColumnSelectionDialog(header: String[]): Promise<String[]
       .classed("mdl-list__item", true)
       .html(function(sColumn, i){
         return `<label class="mdl-checkbox mdl-js-checkbox" for="checkbox-${i}">
-        <input type="checkbox" id="checkbox-${i}" class="mdl-checkbox__input" ${ i < 5 ? "checked": ""} value="${sColumn}" }>
+        <input type="checkbox" id="checkbox-${i}" class="mdl-checkbox__input" ${ i < MAX_INPUT ? "checked": ""} value="${sColumn}" }>
         <span class="mdl-checkbox__label">${sColumn}</span>
       </label>`
+      })
+      .on('click', function(d){
+        // if checked, remove from the Output column option
+        const cb: HTMLInputElement = this.querySelector('input');
+        if(cb.checked){
+          oTargetColumns.remove(cb.value);
+        }else{
+          oTargetColumns.set(cb.value, cb.value);
+        }
+
+        updateOutputSelect();
       });
+
+    // render output select
+    updateOutputSelect();    
 
     // Show the dialog
     dialog.showModal();
@@ -898,7 +934,11 @@ export function openCSVColumnSelectionDialog(header: String[]): Promise<String[]
       .each(function(d){
         CSV_SELECTED_COLUMNS.push(this.value);
       });
-      
+
+      // add the Output/Target column as the last one
+      const sel :any = outputSelect.select("option:checked").node();
+      CSV_SELECTED_COLUMNS.push(sel.value);
+
       dialog.close();
 
       resolve(CSV_SELECTED_COLUMNS);
