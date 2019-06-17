@@ -328,7 +328,21 @@ limitations under the License.
           </label>
         </div>
         <br/>
-        <div class="cm-graph" id="confusionTest"><br><br><br><br></div>
+        <div class="cm-graph" id="confusionTest">
+          <svg width="300" height="300" id="cm-map"></svg>
+          
+          <svg width="300" height="30" id="cm-colorscale">
+            <defs>
+              <linearGradient id="cm-gradient" x1="0%" y1="100%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fff" stop-opacity="1"></stop>
+                <stop offset="100%" stop-color="#0877bd" stop-opacity="1"></stop>
+              </linearGradient>
+            </defs>
+            <g class="core" transform="translate(0, 0)">
+              <rect width="260" height="10" style="fill: url('#cm-gradient');"></rect>
+            </g>
+          </svg>
+        </div>
       </div>
 
     </div>

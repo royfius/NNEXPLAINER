@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import {BLUE_COLOR} from "./playground";
 
 export type ConfusionMatrix = {
     matrix: number[][],
@@ -100,91 +101,131 @@ export function textPlot(matrix): string {
 }
 
 // NOT FUNCTIONAL YET.
-function plotConfusionMatrix() {
+export function plotConfusionMatrix(matrixData) {
 
     // set the dimensions and margins of the graph
-    let margin = {top: 30, right: 30, bottom: 30, left: 30},
-    width = 450 - margin.left - margin.right,
-    height = 450 - margin.top - margin.bottom;
-
-    // append the svg object to the body of the page
-    let svg = d3.select("#confusionTest")
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform",
-              "translate(" + margin.left + "," + margin.top + ")");
-
+    const margin = {top: 0, right: 20, bottom: 40, left: 20},
+    width = 300 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom,
     // Labels of row and columns
-    // let Groups = ["-1", "0", "1"];
-    let Groups = [-1, 0, 1];
+    Groups = [-1, 1],
+    size = width/Groups.length,
+    colorScale = d3.scale.linear<string>()
+                .domain([1,100])
+                .interpolate(d3.interpolateRgb)
+                .range(["white", BLUE_COLOR])
+                .clamp(true);
 
-    // Build X scales and axis:
-    // tfplayground uses d3 v3.5 !!!;
-    let xScale = d3.scale.linear()
-        .domain(Groups)
-        .range([ 0 , width]);
+    let svg;
 
-    let yScale = d3.scale.linear()
-        .domain(Groups)
-        .range([height, 0]);
+    //Read the data
+    let flatData = [];
+    for (let i = 0; i < matrixData.length; i++) {
+        for (let j = 0; j < matrixData.length; j++) {
+            flatData.push({
+                x: i,
+                y: j,
+                v: matrixData[i][j]
+            });
+        }
+    }
+    const matrixDataExtent = d3.extent(flatData, (d) => d.v),
+    cx = d3.scale.linear().domain([0, matrixDataExtent[1]]).range([0, width]).nice(),
+    cxAxis = d3.svg.axis()
+            .scale(cx)
+            .orient("bottom")
+            .tickFormat(d3.format("d"));
+    
+    if(!d3.select("#cm-map g").node()){
+        // append the svg object to the body of the page
+        svg = d3.select("#cm-map")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .style("left", `-${margin.left}px`)
+            .style("position", "relative")
+            .append("g")
+            .attr("transform", `translate( ${margin.left}, ${margin.top})`);
 
-    let xAxis = d3.svg.axis()
-        .scale(xScale)
-        .orient("bottom");
+        const xAxis = svg.append("g")
+            .classed("axis", true)
+            .attr("transform", `translate(${margin.left}, ${height})`);
+        
+        // Add X labels
+        xAxis.selectAll('text')
+            .data(Groups)
+            .enter()
+            .append('text')
+            .attr({
+                "y": 10,
+                "x": (d, i) => i * size,
+                "text-anchor": "middle",
+                "transform": `translate(${size / 2}, 5)`
+            })
+            .text((d)=> d);
 
-    let yAxis = d3.svg.axis()
-        .scale(yScale)
-        .orient("left");
+        const yAxis = svg.append("g")
+        .classed("axis", true)
+        .attr("transform", `translate(${width},0)`);
+        
+        // Add X labels
+        yAxis.selectAll('text')
+            .data(Groups)
+            .enter()
+            .append('text')
+            .attr({
+                "x": 0,
+                "y": (d, i) => i * size,
+                "text-anchor": "start",
+                "transform": `translate(5, ${size / 2})`
+            })
+            .text((d)=> d);
 
-    svg.append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxis);
+        // Add scale to the gradient color map.
+        d3.select("#cm-colorscale")
+            .attr("width", width + margin.left + margin.right)
+            .style("left", `-${margin.left}px`)
+            .style("position", "relative")
+        .select("g.core")
+        .attr("transform", `translate(${margin.left},0)`)
+        .append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0,10)")
+            .call(cxAxis);
 
-    svg.append("g")
-        .call(yAxis);
-    /*
-let x = d3s.scaleBand()
-        .range([ 0, width ])
-        .domain(Groups)
-        .padding(0.01);
+    }else{
+        svg = d3.select("#cm-map g");
+    }
 
-svg.append("g")
-  .attr("transform", "translate(0," + height + ")")
-  .call(d3s.axisBottom(x))
+    // Update color axis labels
+    d3.select("#cm-colorscale g.core g.x.axis").call(cxAxis);
 
-// Build X scales and axis:
-var y = d3s.scaleBand()
-        .range([ height, 0 ])
-        .domain(Groups)
-        .padding(0.01);
+    const gRect = svg.selectAll("g.cm")
+        .data(flatData);
 
-svg.append("g")
-  .call(d3.axisLeft(y));
-    // Build color scale
+    gRect.exit().remove();
 
-var myColor = d3s.scaleLinear()
-  .range(["white", "#69b3a2"])
-  .domain([1,100])
+    const gRectEnter = gRect.enter()
+        .append("g")
+        .classed("cm", true)
+        .attr("transform", (d) => `translate(${d.x * size}, ${d.y * size})` );
 
-    */
-//Read the data
+    gRectEnter.append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", size)
+        .attr("height", size)
+        .style("fill", (d) => colorScale(d.v) );
+    
+    gRectEnter.append("text")
+        .attr("x", (d)=> size/2)
+        .attr("y", (d)=> size/2)
+        .text((d)=> d.v);
 
+    gRect.select("rect")
+        .style("fill", (d) => colorScale(d.v) );
+
+    gRect.select("text")
+        .attr("fill", (d) => d3.hsl(colorScale(d.v)).l > .6 ? "#000" : "#fff")
+        .text((d)=> d.v)
 
 }
-/*
-function updateData(svg, data) {
-
-    svg.selectAll()
-        .data(data, function(d) {return d.group+':'+d.variable;})
-        .enter()
-        .append("rect")
-        .attr("x", function(d) { return x(d.group) })
-        .attr("y", function(d) { return y(d.variable) })
-        .attr("width", x.bandwidth() )
-        .attr("height", y.bandwidth() )
-        .style("fill", function(d) { return myColor(d.value)} )
-
-}
-*/

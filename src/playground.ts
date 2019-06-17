@@ -57,7 +57,7 @@ const RECT_SIZE = 30;
 const BIAS_SIZE = 5;
 const NUM_SAMPLES_CLASSIFY = 500;
 const NUM_SAMPLES_REGRESS = 1200;
-const BLUE_COLOR = "#0877bd";
+export const BLUE_COLOR = "#0877bd";
 let DENSITY = 100;
 let INPUT_DIM = 0;
 let COLUMN_COUNT;
@@ -1170,8 +1170,9 @@ function updateUI(firstStep = false) {
 
     // Update Confusion Heatmaps;
     let confusionTest = evaluation.confusionMatrix(testData, testOutput);
-    document.querySelector("#confusionTest").innerHTML =
-        "Test Confusion Matrix:<br>" + evaluation.textPlot(confusionTest);
+    //document.querySelector("#confusionTest").innerHTML =
+    //    "Test Confusion Matrix:<br>" + evaluation.textPlot(confusionTest);
+    evaluation.plotConfusionMatrix(confusionTest.matrix);
 
     // Update Recall, Precision data
     d3.select("#cm-recall").text(humanReadable(confusionTest.recall));
