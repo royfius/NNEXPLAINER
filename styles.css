@@ -389,7 +389,7 @@ header h1 .optional {
   -webkit-justify-content: space-between;
   justify-content: space-between;
   margin-top: 30px;
-  margin-bottom: 50px;
+  margin-bottom: 100px;
   padding-top: 2px;
   position: relative;
 }
@@ -658,7 +658,7 @@ g.column rect {
 }
 
 #network svg .main-label {
-  font-size: 13px;
+  font-size: 12px;
   fill: #333;
   font-weight: 300;
 }

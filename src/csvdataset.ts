@@ -7,6 +7,8 @@ import { Interface } from "readline";
 
 /** Default dataset to be used – mention relative file path */
 const DEFAULT_DATA_FILE_PATH = "../Playground_Dataset.csv";
+/** Column prefix used when the CSV dataset has no header */
+const COLUMN_PREFIX = 'Column ';
 
 class LoadedCsvDataset {
     public header: string[] = [];
@@ -154,7 +156,8 @@ class FileLoader {
 }
 
 function getFileHeaderColumns(row: string[] = []){
-    const aHeader = [];
+    // generate default header
+    const aHeader = d3.range(1, row.length+1).map((d)=> COLUMN_PREFIX + d );
     if(row.length && isNaN(parseFloat(row[0]))) {
         return row;
     }
@@ -178,8 +181,6 @@ function parse_csv_data(csvdata, aSelectedColumns: string[] = []): LoadedCsvData
     aSelectedColumnsIndex = aSelectedColumns.map(function(s: string){
         return aFileHeader.indexOf(s);
     });
-
-    // TODO: What if there exist no columns?
 
     // This makes a result a error-report result;
     let invalidErrorMessage = (value, i, j) => {
@@ -256,8 +257,6 @@ function parse_csv_data(csvdata, aSelectedColumns: string[] = []): LoadedCsvData
         }
 
     }
-
-    //console.log(data.points);
 
     return data;
 }

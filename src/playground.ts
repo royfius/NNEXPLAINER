@@ -60,6 +60,7 @@ const NUM_SAMPLES_REGRESS = 1200;
 const BLUE_COLOR = "#0877bd";
 let DENSITY = 100;
 let INPUT_DIM = 0;
+let COLUMN_COUNT;
 export const MAX_INPUT :number = 16;
 
 enum HoverType {
@@ -302,7 +303,13 @@ function makeGUI() {
 
       function _updateData(csvOutput: csvdataset.CSVDataset): void{
         // Update number of neurons
-        state.networkShape[0] = constructInput(csvOutput.points[0]).length;
+        // Don't consider the target column that exists in the header
+        /**
+         * Make number of features/neurons in first layer same as the 
+         * number of input features/attributes or more if explicitly added
+         */
+        COLUMN_COUNT = state.networkShape[0] = csvOutput.header.length-1;
+
         updateData(csvOutput.header, csvOutput.points);
       }
       
@@ -538,12 +545,10 @@ function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
                   container, node?: nn.Node, data_series?: number[]) {
 
 
-    let _RECT_SIZE = RECT_SIZE;
-    if (isInput) {
-        let _RECT_SIZE = RECT_SIZE * 2;
-    } 
+  let _RECT_SIZE = RECT_SIZE;
   let x = cx - _RECT_SIZE / 2;
   let y = cy - _RECT_SIZE / 2;
+  let offset = 3;
 
   let nodeGroup = container.append("g")
     .attr({
@@ -553,14 +558,14 @@ function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
     });
 
   // Draw the main rectangle.
-    let main = nodeGroup.append("rect")
-        .attr({
-            x: 0,
-            y: 0,
-            width: _RECT_SIZE,
-            height: _RECT_SIZE,
-        })
-        .style("opacity", 0);
+  let main = nodeGroup.append("rect")
+      .attr({
+          x: 0,
+          y: 0,
+          width: _RECT_SIZE,
+          height: _RECT_SIZE,
+      })
+      .style("opacity", 0);
   let activeOrNotClass = state[nodeId] ? "active" : "inactive";
   if (isInput) {
     let label = INPUTS[nodeId].label != null ?
@@ -569,7 +574,7 @@ function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
     let text = nodeGroup.append("text").attr({
       class: "main-label",
       x: -10,
-      y: RECT_SIZE / 2, "text-anchor": "end"
+      y: offset + RECT_SIZE / 2, "text-anchor": "end"
     });
     if (/[_^]/.test(label)) {
       let myRe = /(.*?)([_^])(.)/g;
@@ -604,7 +609,7 @@ function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
       .attr({
         id: `bias-${nodeId}`,
         x: -BIAS_SIZE - 2,
-        y: _RECT_SIZE - BIAS_SIZE + 3,
+        y: _RECT_SIZE - BIAS_SIZE + offset,
         width: BIAS_SIZE,
         height: BIAS_SIZE,
       }).on("mouseenter", function() {
@@ -614,7 +619,6 @@ function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
       });
   }
 
-  if (!isInput) {}
   // Draw the node's canvas.
   let div = d3.select("#network").insert("div", ":first-child")
     .attr({
@@ -623,8 +627,8 @@ function drawNode(cx: number, cy: number, nodeId: string, isInput: boolean,
     })
     .style({
       position: "absolute",
-      left: `${x + 3}px`,
-      top: `${y + 3}px`
+      left: `${x + offset}px`,
+      top: `${y + offset}px`
     })
     .on("mouseenter", function() {
       selectedNodeId = nodeId;
@@ -714,7 +718,7 @@ function drawNetwork(network: nn.Node[][]): void {
   let targetIdWithCallout = null;
 
     // Draw the input layer separately.
-    let cx = RECT_SIZE / 2 + 50;
+    let cx = RECT_SIZE / 2 + 60;
     let nodeIds = Object.keys(INPUTS);
 
     let maxY = nodeIndexScale(nodeIds.length);
@@ -822,7 +826,7 @@ function addPlusMinusControl(x: number, layerIdx: number) {
       .attr("class", "mdl-button mdl-js-button mdl-button--icon")
       .on("click", () => {
         let numNeurons = state.networkShape[i];
-        if (numNeurons >= 8) {
+        if (numNeurons >= MAX_INPUT) {
           return;
         }
         state.networkShape[i]++;
@@ -1251,7 +1255,7 @@ function reset(onStartup = false) {
      * Make number of features/neurons in first layer same as the 
      * number of input features/attributes or more if explicitly added
      */
-    state.networkShape[0] = Math.max(numInputs, state.networkShape[0]);
+    //state.networkShape[0] = COLUMN_COUNT || numInputs; //Math.max(numInputs, state.networkShape[0]);
      
     let shape = [numInputs].concat(state.networkShape).concat([1]);
     let outputActivation = (state.problem === Problem.REGRESSION) ?
@@ -1314,12 +1318,12 @@ function drawDatasetThumbnails() {
     function manageThumbnail(canvas, datasetName, datasetGroup) {
         // reg-csv dataset has a thumbnail generator that is not the actual data generator;
         if (datasetName == "default-csv") {          
-            renderThumbnail(canvas, csvdataset.defaultDataLoad);
+          renderThumbnail(canvas, csvdataset.defaultDataLoad);
         } else if (datasetName == "csv") {
           renderThumbnail(canvas, csvdataset.makeThumbnail);
         } else {
-            let dataGenerator = datasetGroup[datasetName];
-            renderThumbnail(canvas, dataGenerator);
+          let dataGenerator = datasetGroup[datasetName];
+          renderThumbnail(canvas, dataGenerator);
         }
     }
 
@@ -1477,7 +1481,10 @@ function simulationStarted() {
 }
 
 // Load default dataset
-csvdataset.loadDefaultCSV().then(function(){
+csvdataset.loadDefaultCSV().then(function(csvOutput){
+  //COLUMN_COUNT = constructInput(csvOutput.points[0]).length;
+  COLUMN_COUNT = state.networkShape[0] = csvOutput.header.length-1;
+
   drawDatasetThumbnails();
   initTutorial();
   makeGUI();
