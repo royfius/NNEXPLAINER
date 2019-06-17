@@ -315,9 +315,20 @@ limitations under the License.
             <span class="mdl-checkbox__label label">Discretize output</span>
           </label>
         </div>
-
+        <br/>
         <!--  confusion plot div with spacer for text; -->
-        <div id="confusionTest"><br><br><br><br></div>
+        <div class="cm-data" style="display: flex;">
+          <label>
+            <span class="label">Recall</span>
+            <div class="value" id="cm-recall"></div>
+          </label>
+          <label>
+            <span class="label">Precision</span>
+            <div class="value" id="cm-precision"></div>
+          </label>
+        </div>
+        <br/>
+        <div class="cm-graph" id="confusionTest"><br><br><br><br></div>
       </div>
 
     </div>

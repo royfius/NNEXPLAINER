@@ -1020,3 +1020,12 @@ footer .links a:hover {
   display: block;
   width: 100%;
 }
+
+/* Confusion Matrix */
+.cm-data label {
+  display: inline-block;
+  width: 100%;
+}
+.cm-data label > * {
+  display: inline-block;
+}

@@ -1169,10 +1169,13 @@ function updateUI(firstStep = false) {
 
 
     // Update Confusion Heatmaps;
-
     let confusionTest = evaluation.confusionMatrix(testData, testOutput);
     document.querySelector("#confusionTest").innerHTML =
         "Test Confusion Matrix:<br>" + evaluation.textPlot(confusionTest);
+
+    // Update Recall, Precision data
+    d3.select("#cm-recall").text(humanReadable(confusionTest.recall));
+    d3.select("#cm-precision").text(humanReadable(confusionTest.precision));
 }
 
 function constructInputIds(): string[] {

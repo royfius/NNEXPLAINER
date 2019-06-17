@@ -96,7 +96,6 @@ export function textPlot(matrix): string {
         output += "<br>";
     }
 
-    output += "<br>Recall: " + matrix.recall +"<br>Precision: " + matrix.precision;
     return output;
 }
 
