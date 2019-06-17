@@ -32,7 +32,8 @@ import * as d3 from "d3";
 
 import * as csvdataset from "./csvdataset";
 import * as evaluation from "./evaluation";
-import dialogPolyfill from 'dialog-polyfill'
+import dialogPolyfill from 'dialog-polyfill';
+import * as marked from 'marked';
 
 
 let mainWidth;
@@ -63,6 +64,8 @@ let INPUT_DIM = 0;
 let COLUMN_COUNT;
 export const MAX_INPUT :number = 16;
 export const MAX_NEURONS :number = 8;
+
+const MD_SECTION_BREAK_TOKEN = "---BR---";
 
 enum HoverType {
   BIAS, WEIGHT
@@ -1392,6 +1395,34 @@ function hideControls() {
     .attr("href", window.location.href);
 }
 
+function renderMarkdown(){
+
+  // Render Title
+  const title = document.querySelector("#site-title-md");
+  d3.text("template/title.md", "text/plain", function(error, titleMarkdown){
+    if(titleMarkdown){
+      d3.select(title)
+        .classed("l--page", true)
+        .html(marked(titleMarkdown));
+    }
+  });
+
+  // Render Sections
+  const target = document.querySelector("#article-text-md");
+  d3.text("template/sections.md", "text/plain", function(error, sectionMarkdown){
+    if(sectionMarkdown){
+      const sections = sectionMarkdown.split(MD_SECTION_BREAK_TOKEN);
+      d3.select(target)
+        .selectAll("div.l--body")
+        .data(sections)
+        .enter()
+        .append("div")
+        .classed("l--body", true)
+        .html((d) => marked(d));
+    }
+  });
+}
+
 function generateData(firstTime = false) {
   let header = [];
   if (!firstTime) {
@@ -1485,9 +1516,12 @@ function simulationStarted() {
   parametersChanged = false;
 }
 
+// Render templates
+renderMarkdown();
+
 // Load default dataset
 csvdataset.loadDefaultCSV().then(function(csvOutput){
-  //COLUMN_COUNT = constructInput(csvOutput.points[0]).length;
+  
   COLUMN_COUNT = state.networkShape[0] = csvOutput.header.length-1;
 
   drawDatasetThumbnails();
@@ -1496,4 +1530,5 @@ csvdataset.loadDefaultCSV().then(function(csvOutput){
   generateData(true);
   reset(true);
   hideControls();
+  
 });
