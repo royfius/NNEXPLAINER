@@ -52,6 +52,11 @@ function createConfusionMatrix(trueLabels, predictedLabels): ConfusionMatrix {
             }
     };
 
+    // discard 0, its -1 and 1
+    if(AllLabels.indexOf(0) > -1){
+        AllLabels.splice(AllLabels.indexOf(0), 1);
+    }
+
     let matrix = new Array(AllLabels.length);
 
 
@@ -135,6 +140,8 @@ export function plotConfusionMatrix(matrixData) {
             .scale(cx)
             .orient("bottom")
             .tickFormat(d3.format("d"));
+    
+    colorScale.domain(cx.domain());
     
     if(!d3.select("#cm-map g").node()){
         // append the svg object to the body of the page
