@@ -1029,3 +1029,23 @@ footer .links a:hover {
 .cm-data label > * {
   display: inline-block;
 }
+
+/* Links */
+#article-text-md {
+  position: relative;
+}
+.l--nav-scroll {
+  padding: 0 1em;
+  position: absolute;
+  top: 62px;
+}
+.fixed.l--nav-scroll {
+  position: fixed;
+}
+.l--nav-scroll ul {
+  margin: 0;
+}
+.l--nav-scroll a {
+  text-decoration: none;
+  color: #1a1a1a;
+}

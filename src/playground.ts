@@ -1402,13 +1402,12 @@ function renderMarkdown(){
   d3.text("template/title.md", "text/plain", function(error, titleMarkdown){
     if(titleMarkdown){
       d3.select(title)
-        .classed("l--page", true)
         .html(marked(titleMarkdown));
     }
   });
 
   // Render Sections
-  const target = document.querySelector("#article-text-md");
+  const target = document.getElementById("article-text-md");
   d3.text("template/sections.md", "text/plain", function(error, sectionMarkdown){
     if(sectionMarkdown){
       const sections = sectionMarkdown.split(MD_SECTION_BREAK_TOKEN);
@@ -1419,6 +1418,38 @@ function renderMarkdown(){
         .append("div")
         .classed("l--body", true)
         .html((d) => marked(d));
+    }
+  });
+
+  // Render Links
+  d3.text("template/links.md", "text/plain", function(error, linksMarkdown){
+    if(linksMarkdown){
+      //const sections = linksMarkdown;
+      const list = d3.select(target)
+        .append("div")
+        .classed("l--nav-scroll", true)
+        .html(marked(linksMarkdown));
+
+      // apply classes
+      list.select("ul")
+        .classed("links mdl-list", true);
+      
+      list.selectAll("li")
+        .classed("mdl-list__item", true)
+        .select("a")
+        .attr("target", "_blank");
+
+      // add scroll event
+      const offsetTarget = document.getElementById("article-text-md");
+      window.addEventListener('scroll', function(e) {
+        
+        if(window.scrollY >= offsetTarget.offsetTop){
+          list.classed("fixed", true);
+        }else{
+          list.classed("fixed", false);
+        }
+      });
+        
     }
   });
 }
@@ -1524,7 +1555,7 @@ csvdataset.loadDefaultCSV().then(function(csvOutput){
   
   COLUMN_COUNT = state.networkShape[0] = csvOutput.header.length-1;
   CSV_SELECTED_COLUMNS = csvOutput.header.slice(0);
-  
+
   drawDatasetThumbnails();
   initTutorial();
   makeGUI();
