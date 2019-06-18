@@ -1143,13 +1143,13 @@ function updateUI(firstStep = false) {
 
   // Update all decision boundaries.
   d3.select("#network").selectAll("div.canvas")
-        .each(function(data) { //: {heatmap: HeatMap, id: string}) {
-            // Input nodes are "undefined" here;
-            if (typeof data != "undefined") {
-                data.heatmap.updateBackground(reduceMatrix(boundary[data.id], 10),
-                                              state.discretize);
-            }
-  });
+    .each(function(data) { //: {heatmap: HeatMap, id: string}) {
+      // Input nodes are "undefined" here;
+      if (typeof data != "undefined") {
+          data.heatmap
+            .updateBackground(reduceMatrix(boundary[data.id], 10), state.discretize);
+      }
+    });
 
   function zeroPad(n: number): string {
     let pad = "000000";
@@ -1164,22 +1164,29 @@ function updateUI(firstStep = false) {
     return n.toFixed(3);
   }
 
-    // Update loss and iteration number.
-    d3.select("#loss-train").text(humanReadable(lossTrain));
-    d3.select("#loss-test").text(humanReadable(lossTest));
-    d3.select("#iter-number").text(addCommas(zeroPad(iter)));
-    lineChart.addDataPoint([lossTrain, lossTest]);
+  function getTargetColumnName(){
+    return CSV_SELECTED_COLUMNS[CSV_SELECTED_COLUMNS.length-1];
+  }
+
+  // Update Output variable name
+  d3.select("#output-title").html(`Target: ${getTargetColumnName()}`);
+
+  // Update loss and iteration number.
+  d3.select("#loss-train").text(humanReadable(lossTrain));
+  d3.select("#loss-test").text(humanReadable(lossTest));
+  d3.select("#iter-number").text(addCommas(zeroPad(iter)));
+  lineChart.addDataPoint([lossTrain, lossTest]);
 
 
-    // Update Confusion Heatmaps;
-    let confusionTest = evaluation.confusionMatrix(testData, testOutput);
-    //document.querySelector("#confusionTest").innerHTML =
-    //    "Test Confusion Matrix:<br>" + evaluation.textPlot(confusionTest);
-    evaluation.plotConfusionMatrix(confusionTest.matrix);
+  // Update Confusion Heatmaps;
+  let confusionTest = evaluation.confusionMatrix(testData, testOutput);
+  //document.querySelector("#confusionTest").innerHTML =
+  //    "Test Confusion Matrix:<br>" + evaluation.textPlot(confusionTest);
+  evaluation.plotConfusionMatrix(confusionTest.matrix);
 
-    // Update Recall, Precision data
-    d3.select("#cm-recall").text(humanReadable(confusionTest.recall));
-    d3.select("#cm-precision").text(humanReadable(confusionTest.precision));
+  // Update Recall, Precision data
+  d3.select("#cm-recall").text(humanReadable(confusionTest.recall));
+  d3.select("#cm-precision").text(humanReadable(confusionTest.precision));
 }
 
 function constructInputIds(): string[] {
@@ -1258,13 +1265,6 @@ function reset(onStartup = false) {
 
     let numInputs = constructInput(trainData[0]).length;
 
-    // console.log("nbinputs:", numInputs);
-    /**
-     * Make number of features/neurons in first layer same as the 
-     * number of input features/attributes or more if explicitly added
-     */
-    //state.networkShape[0] = COLUMN_COUNT || numInputs; //Math.max(numInputs, state.networkShape[0]);
-     
     let shape = [numInputs].concat(state.networkShape).concat([1]);
     let outputActivation = (state.problem === Problem.REGRESSION) ?
         nn.Activations.LINEAR : nn.Activations.TANH;
@@ -1523,7 +1523,8 @@ renderMarkdown();
 csvdataset.loadDefaultCSV().then(function(csvOutput){
   
   COLUMN_COUNT = state.networkShape[0] = csvOutput.header.length-1;
-
+  CSV_SELECTED_COLUMNS = csvOutput.header.slice(0);
+  
   drawDatasetThumbnails();
   initTutorial();
   makeGUI();
