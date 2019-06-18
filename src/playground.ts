@@ -1265,6 +1265,8 @@ function reset(onStartup = false) {
 
     let numInputs = constructInput(trainData[0]).length;
 
+    state.networkShape[0] = Math.max(state.networkShape[0], 1);
+
     let shape = [numInputs].concat(state.networkShape).concat([1]);
     let outputActivation = (state.problem === Problem.REGRESSION) ?
         nn.Activations.LINEAR : nn.Activations.TANH;

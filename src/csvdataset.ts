@@ -6,7 +6,7 @@ import * as playground from "./playground";
 import { Interface } from "readline";
 
 /** Default dataset to be used – mention relative file path */
-const DEFAULT_DATA_FILE_PATH = "../Playground_Dataset.csv";
+const DEFAULT_DATA_FILE_PATH = "./Playground_Dataset.csv";
 /** Column prefix used when the CSV dataset has no header */
 const COLUMN_PREFIX = 'Column ';
 
