@@ -13,7 +13,7 @@
     "watch-html": "concat index.html -o dist/index.html",
     "build-csv": "copyfiles Playground_Dataset.csv dist",
     "watch-csv": "concat Playground_Dataset.csv -o dist/Playground_Dataset.csv",
-    "build-js": "browserify src/playground.ts -p [tsify] | uglifyjs -c > dist/bundle.js",
+    "build-js": "browserify src/playground.ts -p [tsify] | terser -c > dist/bundle.js",
     "watch-js": "watchify src/playground.ts -p [tsify] -v --debug -o dist/bundle.js",
     "build-md": "copyfiles template/* dist",
     "build": "npm run prep && npm run build-js && npm run build-md && npm run build-css && npm run build-html && npm run build-csv",
@@ -29,9 +29,9 @@
     "copyfiles": "1.0.0",
     "http-server": "^0.11.1",
     "rimraf": "2.5.4",
+    "terser": "^4.0.0",
     "tsify": "^4.0.0",
     "typescript": "^2.9",
-    "uglify-js": "^2.8.29",
     "watchify": "^3.11.1"
   },
   "dependencies": {

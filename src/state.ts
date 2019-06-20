@@ -57,7 +57,7 @@ export let csvDatasets: {[key: string]: Function} = {
   //"reg-plane": dataset.regressPlane,
   //"reg-gauss": dataset.regressGaussian,
   "default-csv": csvdataset.getDefaultDataset,
-  "csv": csvdataset.getUserCSVDataset,
+  "csv": csvdataset.getUserCSVDataset
 };
 
 export function getKeyFromValue(obj: any, value: any): string {
