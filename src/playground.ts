@@ -19,6 +19,7 @@ import {
   State,
   datasets,
   regDatasets,
+  csvDatasets,
   activations,
   problems,
   regularizations,
@@ -1473,6 +1474,9 @@ function generateData(firstTime = false) {
       NUM_SAMPLES_REGRESS : NUM_SAMPLES_CLASSIFY;
   let generator = state.problem === Problem.CLASSIFICATION ?
       state.dataset : state.regDataset;
+  let csvDS = csvDatasets[getKeyFromValue(regDatasets, state.regDataset)];
+
+  header = (state.problem === Problem.REGRESSION) ? csvDS().header : header;
 
   let data = generator(numSamples, state.noise / 100);
 

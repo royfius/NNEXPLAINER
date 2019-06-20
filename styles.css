@@ -354,11 +354,13 @@ header h1 .optional {
   pointer-events: none;
 }
 
-/* Hide Problem selector */
+/* Disabled Problem selector */
 #top-controls .control.ui-problem .select {
+  pointer-events: none;
+}
+#top-controls .control.ui-problem .select:after {
   display: none;
 }
-
 /* Hover card */
 #hovercard {
   display: none;

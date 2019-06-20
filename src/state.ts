@@ -49,7 +49,15 @@ export let regDatasets: {[key: string]: dataset.DataGenerator} = {
     //"reg-plane": dataset.regressPlane,
     //"reg-gauss": dataset.regressGaussian,
     "default-csv": csvdataset.defaultDataLoad,
-    "csv": csvdataset.loadCsv
+    //"csv": csvdataset.loadCsv
+};
+
+/** A map between dataset names and their data. */
+export let csvDatasets: {[key: string]: Function} = {
+  //"reg-plane": dataset.regressPlane,
+  //"reg-gauss": dataset.regressGaussian,
+  "default-csv": csvdataset.getDefaultDataset,
+  "csv": csvdataset.getUserCSVDataset,
 };
 
 export function getKeyFromValue(obj: any, value: any): string {
@@ -113,6 +121,7 @@ export class State {
     {name: "batchSize", type: Type.NUMBER},
     {name: "dataset", type: Type.OBJECT, keyMap: datasets},
     {name: "regDataset", type: Type.OBJECT, keyMap: regDatasets},
+    {name: "csvDataset", type: Type.OBJECT, keyMap: csvDatasets},
     {name: "learningRate", type: Type.NUMBER},
     {name: "regularizationRate", type: Type.NUMBER},
     {name: "noise", type: Type.NUMBER},
@@ -166,6 +175,7 @@ export class State {
   sinY = false;
   dataset: dataset.DataGenerator = dataset.classifyCircleData;
   regDataset: dataset.DataGenerator = csvdataset.defaultDataLoad;
+  csvDataset: Function = csvdataset.getDefaultDataset;
   seed: string;
 
   /**

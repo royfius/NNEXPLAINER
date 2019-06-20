@@ -368,6 +368,14 @@ export function loadCSVFile(): Promise<Object>{
 
 }
 
+export function getDefaultDataset(): CSVDataset{
+    return DEFAULT_CSV_DATASET;
+}
+
+export function getUserCSVDataset(): CSVDataset{
+    return USER_CSV_DATASET;
+}
+
 export function makeThumbnail(numSamples: number, noise: number):
 dataset.Example2D[] {
 

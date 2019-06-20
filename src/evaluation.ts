@@ -174,7 +174,7 @@ export function plotConfusionMatrix(matrixData) {
         .classed("axis", true)
         .attr("transform", `translate(${width},0)`);
         
-        // Add X labels
+        // Add Y labels
         yAxis.selectAll('text')
             .data(Groups)
             .enter()
@@ -183,7 +183,7 @@ export function plotConfusionMatrix(matrixData) {
                 "x": 0,
                 "y": (d, i) => i * size,
                 "text-anchor": "start",
-                "transform": `translate(5, ${size / 2})`
+                "transform": `translate(10, ${size / 2})`
             })
             .text((d)=> d);
 
