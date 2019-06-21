@@ -63,8 +63,8 @@ export const BLUE_COLOR = "#0877bd";
 let DENSITY = 100;
 let INPUT_DIM = 0;
 let COLUMN_COUNT;
-export const MAX_INPUT :number = 16;
-export const MAX_NEURONS :number = 8;
+export const MAX_INPUT :number = 17;
+export const MAX_NEURONS :number = MAX_INPUT - 1;
 
 const MD_SECTION_BREAK_TOKEN = "---BR---";
 
@@ -313,7 +313,7 @@ function makeGUI() {
          * Make number of features/neurons in first layer same as the 
          * number of input features/attributes or more if explicitly added
          */
-        COLUMN_COUNT = state.networkShape[0] = csvOutput.header.length-1;
+        COLUMN_COUNT = state.networkShape[0] = state.networkShape[1] = csvOutput.header.length-1;
 
         updateData(csvOutput.header, csvOutput.points);
       }
@@ -1559,7 +1559,7 @@ renderMarkdown();
 // Load default dataset
 csvdataset.loadDefaultCSV().then(function(csvOutput){
   
-  COLUMN_COUNT = state.networkShape[0] = csvOutput.header.length-1;
+  COLUMN_COUNT = state.networkShape[0] = state.networkShape[1] = csvOutput.header.length-1;
   CSV_SELECTED_COLUMNS = csvOutput.header.slice(0);
 
   drawDatasetThumbnails();
