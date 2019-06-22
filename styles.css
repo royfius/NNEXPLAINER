@@ -1056,3 +1056,16 @@ footer .links a:hover {
   text-decoration: none;
   color: #1a1a1a;
 }
+
+/* Article Sections */
+#article-text-md .l--body :first-child { 
+  cursor: pointer;
+}
+#article-text-md .l--body.close :not(:first-child) {
+  display: none;
+}
+#article-text-md .l--body.close :first-child {
+  -webkit-box-shadow: 0 6px 4px -4px rgba(0,0,0,0.08);;
+  -moz-box-shadow: 0 6px 4px -4px rgba(0,0,0,0.08);;
+  box-shadow: 0 6px 4px -4px rgba(0,0,0,0.08);
+}

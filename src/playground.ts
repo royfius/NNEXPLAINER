@@ -1421,13 +1421,24 @@ function renderMarkdown(){
   d3.text("template/sections.md", "text/plain", function(error, sectionMarkdown){
     if(sectionMarkdown){
       const sections = sectionMarkdown.split(MD_SECTION_BREAK_TOKEN);
-      d3.select(target)
+      const sec = d3.select(target)
         .selectAll("div.l--body")
         .data(sections)
         .enter()
         .append("div")
         .classed("l--body", true)
-        .html((d) => marked(d));
+        .html((d) => marked(d))
+        .each(function(){
+          const secEl = this as HTMLElement;
+
+          // Add event binding to allow toggling the section content
+          secEl.firstElementChild.addEventListener("click", () => {
+            const el = d3.select(this);
+            el.classed('close', !el.classed('close'));
+          });
+
+        });
+      
     }
   });
 
@@ -1446,8 +1457,8 @@ function renderMarkdown(){
       
       list.selectAll("li")
         .classed("mdl-list__item", true)
-        .select("a")
-        .attr("target", "_blank");
+        .select("a");
+        //.attr("target", "_blank");
 
       // add scroll event
       const offsetTarget = document.getElementById("article-text-md");
