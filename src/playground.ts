@@ -1457,18 +1457,39 @@ function renderMarkdown(){
       
       list.selectAll("li")
         .classed("mdl-list__item", true)
-        .select("a");
-        //.attr("target", "_blank");
+        .select("a")
+        .on("click", function(){
+          event.preventDefault();
+
+          const el = document.getElementById(this.getAttribute('href').slice(1));
+
+          if(el.scrollIntoView){
+            el.scrollIntoView({
+              behavior: 'smooth', // smooth scroll
+              block: 'start' // the upper border of the element will be aligned at the top of the visible part of the window of the scrollable area.
+            });
+          } else {
+            const top = el.getBoundingClientRect().top;
+
+            window.scrollTo({
+              top: top, // scroll so that the element is at the top of the view
+              behavior: 'smooth' // smooth scroll
+            });
+          }
+
+        })
 
       // add scroll event
-      const offsetTarget = document.getElementById("article-text-md");
+      const offsetTarget = document.getElementById("article-text"),
+      btnTour = d3.select('#btn-take-tour');
+
       window.addEventListener('scroll', function(e) {
-        
-        if(window.scrollY >= offsetTarget.offsetTop){
-          list.classed("fixed", true);
-        }else{
-          list.classed("fixed", false);
-        }
+
+        const bTrue = window.scrollY >= offsetTarget.offsetTop;
+      
+        list.classed("fixed", bTrue);
+        btnTour.classed("fixed", bTrue);
+
       });
         
     }

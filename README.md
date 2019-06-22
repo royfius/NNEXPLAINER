@@ -13,7 +13,37 @@ Following capabilities and restrictions are applicable: -
  - This fork includes the ability to load `.csv` datasets. The feature is currently disabled.
  - `.csv` data must be normalized and can have upto 16 attribute columns and one target column.
  - Text templates like header, section, navigation links are fetched from their respective markdown templates present in the `template` folder.
- 
+
+# Adding Text Sections and their navigation links
+
+- The navigation links on the left side are quick go-to links which on click scroll the window to their respective text sections.
+- When a text section is created using a Markdown editor like [Marked](https://marked.js.org/demo/), note down the automatically generated `id` of the text heading. It can be seen when `HTML Source` option is selected as the Response.
+- In `links.md`, use the id of the text section as the `href` attribute.
+
+    Here is an example. Open [Marked](https://marked.js.org/demo/) and select `HTML Source` as the Response option.
+    
+    If the following text is entered as Input:
+
+    ```
+    ## Um, What Is a Neural Network?
+
+    It’s a technique for building a computer program that learns from data. It is based very loosely on how we think the human brain works. First, a collection of software “neurons” are created and connected together, allowing them to send messages to each other. Next, the network is asked to solve a problem, which it attempts to do over and over, each time strengthening the connections that lead to success and diminishing those that lead to failure. For a more detailed introduction to neural networks, Michael Nielsen’s [Neural Networks and Deep Learning](http://neuralnetworksanddeeplearning.com/index.html) is a good place to start. For a more technical overview, try [Deep Learning](http://www.deeplearningbook.org/) by Ian Goodfellow, Yoshua Bengio, and Aaron Courville.
+    ```
+
+    the editor shows following output:
+    ```
+    <h2 id="um-what-is-a-neural-network">Um, What Is a Neural Network?</h2>
+    <p>It’s a technique for building a computer program that learns from data. It is based very loosely on how we think the human brain works. First, a collection of software “neurons” are created and connected together, allowing them to send messages to each other. Next, the network is asked to solve a problem, which it attempts to do over and over, each time strengthening the connections that lead to success and diminishing those that lead to failure. For a more detailed introduction to neural networks, Michael Nielsen’s <a href="http://neuralnetworksanddeeplearning.com/index.html">Neural Networks and Deep Learning</a> is a good place to start. For a more technical overview, try <a href="http://www.deeplearningbook.org/">Deep Learning</a> by Ian Goodfellow, Yoshua Bengio, and Aaron Courville.</p>
+    ```
+
+    Note the `id` of the `h2` element: `id="um-what-is-a-neural-network"`
+
+    Use the value of `id` attribute as the `href` attribute for its respective link when you add it in the file `links.md`.
+    An associated link could look like 
+
+    `* [What is a Neural Network](#um-what-is-a-neural-network)`
+
+    That's it.
 
 **If you'd like to contribute, be sure to review the [contribution guidelines](CONTRIBUTING.md).**
 
@@ -33,7 +63,7 @@ HTML and CSS files whenever they change.
 How to Add/Edit the text?
 
 - Currently there are 3 text markdown templates: `links.md`, `sections.md` and `title.md` for navigation sidebar, main text sections and the site header text respectively.
-- You can use any Markdown editor to generate relevant text/html and place in these files. Example: [Stackedit](https://stackedit.io/app), [Dillinger](https://dillinger.io/)
+- You can use any Markdown editor to generate relevant text/html and place in these files. Example: [Marked](https://marked.js.org/demo/), [Stackedit](https://stackedit.io/app), [Dillinger](https://dillinger.io/)
 
 How to update default dataset?
 
