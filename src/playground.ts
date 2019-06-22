@@ -63,6 +63,7 @@ export const BLUE_COLOR = "#0877bd";
 let DENSITY = 100;
 let INPUT_DIM = 0;
 let COLUMN_COUNT;
+let DATA_REGENRATED :boolean = true;
 export const MAX_INPUT :number = 17;
 export const MAX_NEURONS :number = MAX_INPUT - 1;
 
@@ -245,6 +246,9 @@ function makeGUI() {
 
   player.onPlayPause(isPlaying => {
     d3.select("#play-pause-button").classed("playing", isPlaying);
+    if(iter > 0){
+      DATA_REGENRATED = false;
+    }
   });
 
   d3.select("#next-step-button").on("click", () => {
@@ -259,6 +263,7 @@ function makeGUI() {
   d3.select("#data-regen-button").on("click", () => {
     generateData();
     parametersChanged = true;
+    DATA_REGENRATED = true;
   });
 
   let dataThumbnails = d3.selectAll("canvas[data-dataset]");
@@ -384,7 +389,7 @@ function makeGUI() {
     state.discretize = this.checked;
     state.serialize();
     userHasInteracted();
-    updateUI();
+    updateUI(DATA_REGENRATED);
   });
   // Check/uncheck the checbox according to the current state.
   discretize.property("checked", state.discretize);
@@ -1140,6 +1145,7 @@ function updateUI(firstStep = false) {
   updateDecisionBoundary(network, firstStep);
   let selectedId = selectedNodeId != null ?
       selectedNodeId : nn.getOutputNode(network).id;
+  
   heatMap.updateBackground(boundary[selectedId], state.discretize);
 
   // Update all decision boundaries.
@@ -1173,6 +1179,8 @@ function updateUI(firstStep = false) {
   d3.select("#output-title").html(`Target: ${getTargetColumnName()}`);
 
   // Update loss and iteration number.
+  d3.select(".metrics").classed("invisible", !!firstStep);
+
   d3.select("#loss-train").text(humanReadable(lossTrain));
   d3.select("#loss-test").text(humanReadable(lossTest));
   d3.select("#iter-number").text(addCommas(zeroPad(iter)));
@@ -1180,9 +1188,8 @@ function updateUI(firstStep = false) {
 
 
   // Update Confusion Heatmaps;
+  d3.selectAll(".cm--output").classed("hidden", !!firstStep);
   let confusionTest = evaluation.confusionMatrix(testData, testOutput);
-  //document.querySelector("#confusionTest").innerHTML =
-  //    "Test Confusion Matrix:<br>" + evaluation.textPlot(confusionTest);
   evaluation.plotConfusionMatrix(confusionTest.matrix);
 
   // Update Recall, Precision data
