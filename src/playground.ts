@@ -1445,6 +1445,24 @@ function renderMarkdown(){
   // Render Links
   d3.text("template/links.md", "text/plain", function(error, linksMarkdown){
     if(linksMarkdown){
+      // Polyfill
+      if (!Element.prototype.matches) {
+        Element.prototype.matches = Element.prototype.msMatchesSelector || 
+                                    Element.prototype.webkitMatchesSelector;
+      }
+      
+      if (!Element.prototype.closest) {
+        Element.prototype.closest = function(s) {
+          var el = this;
+      
+          do {
+            if (el.matches(s)) return el;
+            el = el.parentElement || el.parentNode;
+          } while (el !== null && el.nodeType === 1);
+          return null;
+        };
+      }
+
       //const sections = linksMarkdown;
       const list = d3.select(target)
         .append("div")
@@ -1455,13 +1473,33 @@ function renderMarkdown(){
       list.select("ul")
         .classed("links mdl-list", true);
       
-      list.selectAll("li")
+      const li = list.selectAll("li")
         .classed("mdl-list__item", true)
+        .classed("sub-menu", function(d){
+          return d3.select(this).select("ul").node() ? true : false;
+        })
         .select("a")
         .on("click", function(){
           event.preventDefault();
 
-          const el = document.getElementById(this.getAttribute('href').slice(1));
+          const el = document.getElementById(this.getAttribute('href').slice(1)),
+          parentLi = d3.select(this.parentNode);
+
+          // If sub-menu is clicked, toggle it
+          if(parentLi.classed("sub-menu")){
+            const bClosed = parentLi.classed("closed");
+            parentLi.classed("closed", !bClosed);
+            // also toggle the referenced sections from view
+            const _sections = parentLi.selectAll("a")
+              .each(function(){
+                const lBody = d3.select(`${this.getAttribute("href")}`).node() as Element;
+                d3.select(lBody.closest(".l--body")).classed("hidden", !bClosed);
+              });
+          }
+
+          if(!el){
+            return false;
+          }
 
           if(el.scrollIntoView){
             el.scrollIntoView({
@@ -1477,7 +1515,7 @@ function renderMarkdown(){
             });
           }
 
-        })
+        });
 
       // add scroll event
       const offsetTarget = document.getElementById("article-text"),
