@@ -495,7 +495,7 @@ function makeGUI() {
         mainWidth = newWidth;
         console.log("Network resized.")
         drawNetwork(network);
-        updateUI(true);
+        updateUI();
     }
   });
 
