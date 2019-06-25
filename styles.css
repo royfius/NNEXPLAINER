@@ -1041,6 +1041,7 @@ footer .links a:hover {
 #article-text-md,
 #article-text {
   position: relative;
+  min-height: 20em;
 }
 .l--nav-scroll {
   padding: 0 1em;
