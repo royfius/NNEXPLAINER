@@ -436,7 +436,7 @@ header h1 .optional {
 .more button {
   position: absolute;
   left: -28px;
-  top: -28px;
+  top: -58px;
   background: white;
 }
 
@@ -1046,7 +1046,7 @@ footer .links a:hover {
   padding: 0 1em;
   position: absolute;
   top: 62px;
-  left: 1.5em;
+  left: 1em;
   max-width: 300px;
 }
 .fixed.l--nav-scroll {
@@ -1067,10 +1067,11 @@ footer .links a:hover {
 .l--nav-scroll > ul > li.mdl-list__item.sub-menu {
   flex-direction: column;
   align-items: flex-start;
+  position: relative;
+  padding-left: 1.25em;
 }
 .l--nav-scroll > ul > li.mdl-list__item.sub-menu::after{
   class: "material-icons";
-  content: "expand_less";
   color: #999;
   font-family: 'Material Icons';
   font-weight: normal;
@@ -1084,9 +1085,12 @@ footer .links a:hover {
   word-wrap: normal;
   direction: ltr;
   position: absolute;
-  left: 0;
-  top: 20px;
+  left: -5px;
+  top: 12px;
   pointer-events: none;
+}
+.l--nav-scroll > ul > li.mdl-list__item.sub-menu:not(.closed)::after{
+  content: "expand_less";
 }
 .l--nav-scroll > ul > li.mdl-list__item.sub-menu.closed::after{
   content: "chevron_right";
@@ -1119,6 +1123,9 @@ footer .links a:hover {
   -webkit-box-shadow: 0 6px 4px -4px rgba(0,0,0,0.08);;
   -moz-box-shadow: 0 6px 4px -4px rgba(0,0,0,0.08);;
   box-shadow: 0 6px 4px -4px rgba(0,0,0,0.08);
+}
+#article-text-md .l--body[parent-id*='section'] h3:first-child {
+  font-style: italic;
 }
 #btn-take-tour{
   position: absolute;

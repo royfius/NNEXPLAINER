@@ -68,6 +68,7 @@ export const MAX_INPUT :number = 17;
 export const MAX_NEURONS :number = MAX_INPUT - 1;
 
 const MD_SECTION_BREAK_TOKEN = "---BR---";
+const MD_SUB_SECTION_BREAK_TOKEN = "---SBR---";
 
 enum HoverType {
   BIAS, WEIGHT
@@ -1421,16 +1422,57 @@ function renderMarkdown(){
   d3.text("template/sections.md", "text/plain", function(error, sectionMarkdown){
     if(sectionMarkdown){
       const sections = sectionMarkdown.split(MD_SECTION_BREAK_TOKEN);
+      let allSections = [];
+
+      sections.forEach(function(sText, s){
+
+        // are there any sub-sections?
+        const subSections = sText.split(MD_SUB_SECTION_BREAK_TOKEN);
+        if(subSections.length){
+          // discard first item which is the section itself
+          subSections.forEach(function(ssText, i){
+            
+            allSections.push({
+              text: ssText,
+              subSection: i > 0,
+              id: i == 0 ? `section-${s}` : `section-${s}-${i}`,
+              parentId: i > 0 ? `section-${s}` : ""
+            });
+
+          });
+        }else{
+          allSections.push({
+            text: sText,
+            id: `section-${s}`,
+            subSection: false,
+            parentId: ""
+          });
+        }
+
+      });
+
       const sec = d3.select(target)
         .selectAll("div.l--body")
-        .data(sections)
+        .data(allSections)
         .enter()
         .append("div")
         .classed("l--body", true)
-        .html((d) => marked(d))
-        .each(function(){
+        // By default, only show the first section text. Hide its sub-sections as well
+        .classed("hidden", (d,i) => i > 0)
+        .attr("id", (d,i) => d.id)
+        .attr("parent-id", (d) => d.parentId)
+        .html((d) => marked(d.text))
+        .each(function(d, i){
           const secEl = this as HTMLElement;
 
+          
+          // Hide its sub-sections
+          /*
+          if(i == 0){
+            d3.selectAll(`.l--body[parent-id=${this.id}]`)
+              .classed("hidden", true);
+          }
+          */
           // Add event binding to allow toggling the section content
           secEl.firstElementChild.addEventListener("click", () => {
             const el = d3.select(this);
@@ -1463,6 +1505,41 @@ function renderMarkdown(){
         };
       }
 
+      function toggleSectionMenu(clickedMenuItem: HTMLElement){
+        const selItem = d3.select(clickedMenuItem),
+        sectionNav = d3.select("#section-nav");
+
+        // if this item is open, don't do anything
+
+        // if this item is closed, closed the currently open one.
+        // Open this item and its section
+        if(selItem.classed("closed")){
+          const lastActiveItem = sectionNav.select(".mdl-list__item.sub-menu:not(.closed)")
+            .classed("closed", true);
+          // Open the section represented by the item
+          //toggleSectionText(lastActiveItem.node() as HTMLElement, true);
+        }
+        // open the item
+        selItem.classed("closed", false);
+
+        // Open the section represented by the item
+        toggleSectionText(clickedMenuItem, false);
+
+      }
+
+      function toggleSectionText(sectionMenuItem: HTMLElement, bClosed: boolean){
+        const selItem = d3.select(sectionMenuItem);
+
+        // hide all sections
+        d3.select("#article-text-md").selectAll(".l--body").classed("hidden", true);
+
+        selItem.selectAll("a")
+        .each(function(){
+          const lBody = d3.select(`${this.getAttribute("href")}`).node() as Element;
+          d3.select(lBody.closest(".l--body")).classed("hidden", bClosed);
+        });
+      }
+
       //const sections = linksMarkdown;
       const list = d3.select(target)
         .append("div")
@@ -1471,12 +1548,18 @@ function renderMarkdown(){
 
       // apply classes
       list.select("ul")
+        .attr("id", "section-nav")
         .classed("links mdl-list", true);
+
+      //d3.selectAll("#section-nav > li").classed("sub-menu", true);
       
-      const li = list.selectAll("li")
-        .classed("mdl-list__item", true)
+      list.selectAll("li")
+        // be default, all sub-menu items are closed
+        // Only the details of first section is shown – not including any of its sub-sections
+        .classed("mdl-list__item closed", true)
         .classed("sub-menu", function(d){
-          return d3.select(this).select("ul").node() ? true : false;
+          //return d3.select(this).select("ul").node() ? true : false;
+          return d3.select(this.parentNode).classed("mdl-list");
         })
         .select("a")
         .on("click", function(){
@@ -1485,7 +1568,12 @@ function renderMarkdown(){
           const el = document.getElementById(this.getAttribute('href').slice(1)),
           parentLi = d3.select(this.parentNode);
 
-          // If sub-menu is clicked, toggle it
+          if(parentLi.classed("sub-menu")){
+            toggleSectionMenu(this.parentNode);
+          }
+
+          /*
+          // If sub-menu is clicked, toggle it and close any open one
           if(parentLi.classed("sub-menu")){
             const bClosed = parentLi.classed("closed");
             parentLi.classed("closed", !bClosed);
@@ -1496,6 +1584,7 @@ function renderMarkdown(){
                 d3.select(lBody.closest(".l--body")).classed("hidden", !bClosed);
               });
           }
+          */
 
           if(!el){
             return false;
