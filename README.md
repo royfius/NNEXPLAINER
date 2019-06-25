@@ -47,6 +47,12 @@ Following capabilities and restrictions are applicable: -
 
 **If you'd like to contribute, be sure to review the [contribution guidelines](CONTRIBUTING.md).**
 
+# Tour Page
+
+- The contents of `tour.html` are also based on Markdown templates.
+- The Markdown templates are located in folder `template/tour`.
+- The rules for creating the content are same as applicable for `Adding Text Sections and their navigation links` mentioned above.
+
 ## Development
 
 To run the visualization locally, run:
