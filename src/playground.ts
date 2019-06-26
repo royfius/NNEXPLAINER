@@ -1531,12 +1531,14 @@ function renderMarkdown(){
         const selItem = d3.select(sectionMenuItem);
 
         // hide all sections
-        d3.select("#article-text-md").selectAll(".l--body").classed("hidden", true);
+        d3.select("#article-text-md").selectAll(".l--body").classed("marked-hidden", true);
 
         selItem.selectAll("a")
         .each(function(){
           const lBody = d3.select(`${this.getAttribute("href")}`).node() as Element;
-          d3.select(lBody.closest(".l--body")).classed("hidden", bClosed);
+          d3.select(lBody.closest(".l--body"))
+            .classed("hidden", bClosed)
+            .classed("marked-hidden", false);
         });
       }
 
@@ -1572,20 +1574,6 @@ function renderMarkdown(){
             toggleSectionMenu(this.parentNode);
           }
 
-          /*
-          // If sub-menu is clicked, toggle it and close any open one
-          if(parentLi.classed("sub-menu")){
-            const bClosed = parentLi.classed("closed");
-            parentLi.classed("closed", !bClosed);
-            // also toggle the referenced sections from view
-            const _sections = parentLi.selectAll("a")
-              .each(function(){
-                const lBody = d3.select(`${this.getAttribute("href")}`).node() as Element;
-                d3.select(lBody.closest(".l--body")).classed("hidden", !bClosed);
-              });
-          }
-          */
-
           if(!el){
             return false;
           }
@@ -1603,6 +1591,18 @@ function renderMarkdown(){
               behavior: 'smooth' // smooth scroll
             });
           }
+
+          // Make new sections visible with transition
+          d3.select("#article-text-md").selectAll(".l--body.marked-hidden")
+            .transition()
+            .duration(650)
+            .style("opacity", 0)
+            .each("end", function(){
+              d3.select(this)
+                .classed("hidden", true)
+                .classed("marked-hidden", false)
+                .style("opacity", 1);
+            });
 
         });
 

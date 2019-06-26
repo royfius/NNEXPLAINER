@@ -81,22 +81,22 @@ body {
 
 /* Buttons */
 
-#main-part .mdl-button {
+#main-part .mdl-button:not(.mdl-button--colored) {
   background-color: rgba(158,158,158,.1);
   width: 28px;
   height: 28px;
   min-width: 28px;
 }
 
-#main-part .mdl-button:hover {
+#main-part .mdl-button:hover:not(.mdl-button--colored) {
   background-color: rgba(158,158,158,.3);
 }
 
-#main-part .mdl-button:focus:not(:active) {
+#main-part .mdl-button:focus:not(:active):not(.mdl-button--colored) {
     background-color: rgba(158,158,158,.4);
 }
 
-#main-part .mdl-button:active {
+#main-part .mdl-button:active:not(.mdl-button--colored) {
     background-color: rgba(158,158,158,.5);
 }
 
@@ -1128,12 +1128,8 @@ footer .links a:hover {
 #article-text-md .l--body[parent-id*='section'] h3:first-child {
   font-style: italic;
 }
-#btn-take-tour{
-  position: absolute;
-  left: 2em;
-  top: 75px;
-}
-#btn-take-tour.fixed {
-  top: 1.5em;
-  position: fixed;
+#btn-take-tour {
+  margin-top: 2em;
+  display: block;
+  font-size: 12px;
 }
