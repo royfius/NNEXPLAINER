@@ -891,7 +891,7 @@ article p {
 
 footer {
   border-top: solid 1px #eee;
-  color: #ccc;
+  color: #4e6875;
   font-weight: 300;
   padding: 40px 0;
   height: 30px;
@@ -1041,12 +1041,12 @@ footer .links a:hover {
 #article-text-md,
 #article-text {
   position: relative;
-  min-height: 20em;
+  min-height: 500px;
 }
 .l--nav-scroll {
   padding: 0 1em;
   position: absolute;
-  top: 62px;
+  top: -0.5em;
   left: 1em;
   max-width: 300px;
 }
@@ -1055,6 +1055,7 @@ footer .links a:hover {
 }
 .l--nav-scroll ul {
   margin: 0;
+  padding: 0;
 }
 .l--nav-scroll a {
   text-decoration: none;

@@ -1,12 +1,3 @@
-## An Example
-
-Some description here...  
-MOre description....
-Even more description ...  
-More...
-
----BR---
-
 ## Um, What Is a Neural Network?
 
 It’s a technique for building a computer program that learns from data. It is based very loosely on how we think the human brain works. First, a collection of software “neurons” are created and connected together, allowing them to send messages to each other. Next, the network is asked to solve a problem, which it attempts to do over and over, each time strengthening the connections that lead to success and diminishing those that lead to failure. For a more detailed introduction to neural networks, Michael Nielsen’s [Neural Networks and Deep Learning](http://neuralnetworksanddeeplearning.com/index.html) is a good place to start. For a more technical overview, try [Deep Learning](http://www.deeplearningbook.org/) by Ian Goodfellow, Yoshua Bengio, and Aaron Courville.
@@ -19,6 +10,15 @@ It’s a technique for building a computer program that learns from data. It is 
 Please do! We’ve open sourced it on [GitHub](https://github.com/tensorflow/playground) with the hope that it can make neural networks a little more accessible and easier to learn. You’re free to use it in any way that follows our [Apache License](https://github.com/tensorflow/playground/blob/master/LICENSE). And if you have any suggestions for additions or changes, please [let us know](https://github.com/tensorflow/playground/issues).
 
 We’ve also provided some controls below to enable you tailor the playground to a specific topic or lesson. Just choose which features you’d like to be visible below then save [this link](#), or [refresh](javascript:location.reload();) the page.
+
+---BR---
+
+## An Example
+
+Some description here...  
+MOre description....
+Even more description ...  
+More...
 
 ---BR---
 
