@@ -1189,7 +1189,8 @@ function updateUI(firstStep = false) {
 
 
   // Update Confusion Heatmaps;
-  d3.selectAll(".cm--output").classed("hidden", !!firstStep);
+  // Following line hides confusion matrix on step zero; 
+  //d3.selectAll(".cm--output").classed("hidden", !!firstStep);
   let confusionTest = evaluation.confusionMatrix(testData, testOutput);
   evaluation.plotConfusionMatrix(confusionTest.matrix);
 
