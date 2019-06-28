@@ -26,21 +26,36 @@ export function renderMarkdown(sTemplatePath: string){
   
           // are there any sub-sections?
           const subSections = sText.split(MD_SUB_SECTION_BREAK_TOKEN);
+
           if(subSections.length){
             // discard first item which is the section itself
             subSections.forEach(function(ssText, i){
+
+              const htmlContent = marked(ssText);
+
+              if(!htmlContent.length){
+                return;
+              }
               
               allSections.push({
-                text: ssText,
+                html: htmlContent,
                 subSection: i > 0,
                 id: i == 0 ? `section-${s}` : `section-${s}-${i}`,
                 parentId: i > 0 ? `section-${s}` : ""
               });
   
             });
+
           }else{
+
+            const htmlContent = marked(sText);
+
+            if(!htmlContent.length){
+              return;
+            }
+
             allSections.push({
-              text: sText,
+              html: htmlContent,
               id: `section-${s}`,
               subSection: false,
               parentId: ""
@@ -59,7 +74,7 @@ export function renderMarkdown(sTemplatePath: string){
           .classed("hidden", (d,i) => i > 0)
           .attr("id", (d,i) => d.id)
           .attr("parent-id", (d) => d.parentId)
-          .html((d) => marked(d.text))
+          .html((d) => d.html)
           .each(function(d, i){
             const secEl = this as HTMLElement;
   
@@ -134,10 +149,15 @@ export function renderMarkdown(sTemplatePath: string){
   
           selItem.selectAll("a")
           .each(function(){
-            const lBody = d3.select(`${this.getAttribute("href")}`).node() as Element;
-            d3.select(lBody.closest(".l--body"))
-              .classed("hidden", bClosed)
-              .classed("marked-hidden", false);
+            const hash = getHash(this);
+            if(hash.length > 1){
+              const lBody = d3.select(hash).node() as Element;
+              if(lBody){
+                d3.select(lBody.closest(".l--body"))
+                  .classed("hidden", bClosed)
+                  .classed("marked-hidden", false);
+              }
+            }
           });
         }
   
@@ -167,12 +187,12 @@ export function renderMarkdown(sTemplatePath: string){
           .on("click", function(){
             event.preventDefault();
   
-            const el = document.getElementById(this.getAttribute('href').slice(1)),
+            const el = document.getElementById(getHash(this).slice(1)),
             parentLi = d3.select(this.parentNode);
   
             if(parentLi.classed("sub-menu")){
               toggleSectionMenu(this.parentNode);
-            }else{
+            }else if(el){
               // check if the target section is visible, otherwise make it visible
               // Applicable to sub-section links of first section
               d3.select(el.parentNode).classed("hidden", false);
@@ -182,25 +202,10 @@ export function renderMarkdown(sTemplatePath: string){
               return false;
             }
   
-            if(el.scrollIntoView){
-              el.scrollIntoView({
-                behavior: 'smooth', // smooth scroll
-                block: 'start' // the upper border of the element will be aligned at the top of the visible part of the window of the scrollable area.
-              });
-            } else {
-              const top = el.getBoundingClientRect().top;
-  
-              window.scrollTo({
-                top: top, // scroll so that the element is at the top of the view
-                behavior: 'smooth' // smooth scroll
-              });
-            }
-  
             // Make new sections visible with transition
-            
             articleTarget.selectAll(".l--body.marked-hidden")
               .transition()
-              .duration(650)
+              .duration(0)
               .style("opacity", 0)
               .each("end", function(){
                 d3.select(this)
@@ -212,6 +217,10 @@ export function renderMarkdown(sTemplatePath: string){
             // make sure navigation panel height stays within the content
             articleTarget
               .style("min-height", `${Math.max(500, (list.node() as HTMLElement).clientHeight)}px`);
+
+            setTimeout(function(){
+              scrollToView(el);
+            }, 100);
   
           });
   
@@ -240,4 +249,29 @@ export function renderMarkdown(sTemplatePath: string){
       }
     });
     
+}
+
+function getHash(el){
+  if(el.hash){
+    return el.hash;
+  }else{
+    return `#${el.href.split('#')[1] || ''}`;
+  }
+}
+
+function scrollToView(el){
+
+  if(el.scrollIntoView){
+    el.scrollIntoView({
+      behavior: 'smooth', // smooth scroll
+      block: 'start' // the upper border of the element will be aligned at the top of the visible part of the window of the scrollable area.
+    });
+  } else {
+    const top = el.getBoundingClientRect().top;
+
+    window.scrollTo({
+      top: top, // scroll so that the element is at the top of the view
+      behavior: 'smooth' // smooth scroll
+    });
+  }
 }
