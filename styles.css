@@ -1043,6 +1043,7 @@ footer .links a:hover {
   position: relative;
   min-height: 500px;
 }
+/*
 .l--nav-scroll {
   padding: 0 1em;
   position: absolute;
@@ -1050,6 +1051,7 @@ footer .links a:hover {
   left: 1em;
   max-width: 300px;
 }
+*/
 .fixed.l--nav-scroll {
   position: fixed;
 }
@@ -1115,7 +1117,12 @@ footer .links a:hover {
 }
 
 /* Article Sections */
-#article-text-md .l--body :first-child { 
+#article-text-md .l--body h1:first-child,
+#article-text-md .l--body h2:first-child,
+#article-text-md .l--body h3:first-child,
+#article-text-md .l--body h4:first-child,
+#article-text-md .l--body h5:first-child,
+#article-text-md .l--body h6:first-child { 
   cursor: pointer;
 }
 #article-text-md .l--body.close :not(:first-child) {
@@ -1130,7 +1137,41 @@ footer .links a:hover {
   font-style: italic;
 }
 #btn-take-tour {
-  margin-top: 2em;
+  margin-top: 4em;
   display: block;
-  font-size: 12px;
+  font-size: 10px;
+}
+#article-text-md .l--body {
+  width: auto;
+}
+#article-text-md .l--body table {
+  width: 100%;
+}
+
+#article-text-md .l--body table thead tr th:first-child {
+  width: 30%;
+}
+
+#article-nav-md {
+  position: relative;
+}
+
+.l--nav-scroll {
+  position: absolute;
+  top: -0.5em;
+}
+.fixed.l--nav-scroll {
+  position: fixed;
+  padding-top: 6em;
+}
+article.no-shadow {
+  box-shadow: none;
+}
+.active-anchor {
+  margin-top: 3.85em !important;
+}
+@media (min-width: 1180px) {
+  #btn-take-tour {
+    font-size: 12px;
+  }
 }
