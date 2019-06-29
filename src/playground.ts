@@ -1137,6 +1137,20 @@ function getLoss(network: nn.Node[][], dataPoints: Example2D[]):
     return [loss / dataPoints.length, outputs];
 }
 
+// Number manipulations;
+function zeroPad(n: number): string {
+    let pad = "000000";
+    return (pad + n).slice(-pad.length);
+}
+
+function addCommas(s: string): string {
+    return s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function humanReadable(n: number): string {
+    return n.toFixed(3);
+}
+
 function updateUI(firstStep = false) {
   // Update the links visually.
   updateWeightsUI(network, d3.select("g.core"));
@@ -1159,18 +1173,7 @@ function updateUI(firstStep = false) {
       }
     });
 
-  function zeroPad(n: number): string {
-    let pad = "000000";
-    return (pad + n).slice(-pad.length);
-  }
 
-  function addCommas(s: string): string {
-    return s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  }
-
-  function humanReadable(n: number): string {
-    return n.toFixed(3);
-  }
 
   function getTargetColumnName(){
     return CSV_SELECTED_COLUMNS[CSV_SELECTED_COLUMNS.length-1];
@@ -1187,16 +1190,21 @@ function updateUI(firstStep = false) {
   d3.select("#iter-number").text(addCommas(zeroPad(iter)));
   lineChart.addDataPoint([lossTrain, lossTest]);
 
+    // Update Confusion Heatmaps;
+    let confusionTest = evaluation.confusionMatrix(testData, testOutput);
+    updateConfusionMatrix(confusionTest);
 
-  // Update Confusion Heatmaps;
-  // Following line hides confusion matrix on step zero; 
-  //d3.selectAll(".cm--output").classed("hidden", !!firstStep);
-  let confusionTest = evaluation.confusionMatrix(testData, testOutput);
-  evaluation.plotConfusionMatrix(confusionTest.matrix);
+}
 
-  // Update Recall, Precision data
-  d3.select("#cm-recall").text(humanReadable(confusionTest.recall));
-  d3.select("#cm-precision").text(humanReadable(confusionTest.precision));
+function updateConfusionMatrix(confusion) {
+
+    // Following line hides confusion matrix on step zero; 
+    //d3.selectAll(".cm--output").classed("hidden", !!firstStep);
+    evaluation.plotConfusionMatrix(confusion.matrix);
+
+    // Update Recall, Precision data
+    d3.select("#cm-recall").text(humanReadable(confusion.recall));
+    d3.select("#cm-precision").text(humanReadable(confusion.precision));
 }
 
 function constructInputIds(): string[] {
@@ -1291,6 +1299,15 @@ function reset(onStartup = false) {
     console.log("Global reset.", state.networkShape);
     drawNetwork(network);
     updateUI(true);
+
+    // Set confusion matrix to zeros, after initizaling;
+    let zeroConfusion: evaluation.ConfusionMatrix = {
+        matrix: [[0, 0], [0, 0]],
+        recall: 0,
+        precision: 0,
+        labels: [-1, 1]
+    };
+    updateConfusionMatrix(zeroConfusion);
 };
 
 function initTutorial() {
