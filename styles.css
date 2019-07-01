@@ -1133,7 +1133,7 @@ footer .links a:hover {
   -moz-box-shadow: 0 6px 4px -4px rgba(0,0,0,0.08);;
   box-shadow: 0 6px 4px -4px rgba(0,0,0,0.08);
 }
-#article-text-md .l--body[parent-id*='section'] h3:first-child {
+#article-text-md .l--body[parent-id*='section'] h3 {
   font-style: italic;
 }
 #btn-take-tour {
