@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Deep playground
 
 Deep playground is an interactive visualization of neural networks, written in
@@ -87,7 +86,6 @@ How to export site to a Web hosting service like Godaddy?
 To push to Github Pages: `git subtree push --prefix dist origin gh-pages`.
 
 This is not an official Google product.
-=======
+
 # NNEXPLAINER
 A demonstration of NN using Machine Learning for Financial Analysis
->>>>>>> 7f631568703028f4098ee177df092611bc7f300c
