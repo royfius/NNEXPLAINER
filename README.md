@@ -71,6 +71,7 @@ Following capabilities and restrictions are applicable: -
 To run the visualization locally, run:
 - `npm i` to install dependencies
 - `npm run build` to compile the app and place it in the `dist/` directory
+- Move/place a copy of the images folder inside the newly created dist/ directory
 - `npm run serve` to serve from the `dist/` directory and open a page on your browser.
 
 For a fast edit-refresh cycle when developing run `npm run serve-watch`.
