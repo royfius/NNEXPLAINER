@@ -40,6 +40,8 @@ The domestic index – DOW30-  has been chosen as our target/predicted variable.
 
 We have feature engineered the dataset so that we are inputting/measuring price movement as opposed to static stock prices (e.g. period to period % increase/decrease).
 
+Ver 3.0  
+
 
 ## Warning
 
