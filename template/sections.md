@@ -122,9 +122,9 @@ And here's a sample target dataset - the NASDAQ.
 
 ## CAN YOU RE-PURPOSE IT?  Absolutely!
 
-In keeping with the spirit of our predecessors, the source code is available at: [GitHub](https://github.com/tensorflow/playground) 
+In keeping with the spirit of our predecessors, the source code is available at: [GitHub](https://github.com/royalferguson/NNEXPLAINER.git) 
 
-You’re free to use it in any way that follows the [Apache License](https://github.com/tensorflow/playground/blob/master/LICENSE). 
+You’re free to use it in any way that follows the [Apache License](https://github.com/royalferguson/NNEXPLAINER.git/LICENSE). 
 
 Keep in mind that there are some good examples of NN implementation available as Jupyter Notebooks which are available for download in the BUILD YOUR OWN section.
 
