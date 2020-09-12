@@ -4,7 +4,7 @@
     "moduleResolution": "node",
     "removeComments": true,
     "preserveConstEnums": true,
-    "target": "es6"
+    "target": "esnext"
   },
   "exclude": [
     "node_modules" 
