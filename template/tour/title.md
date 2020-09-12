@@ -1,2 +1,2 @@
-Tinker With a **Neural Network** Right Here in Your Browser. <br> Don’t Worry, You Can’t Break It. We Promise. 
+Welcome to a **TOUR of the NN EXPLAINER**  <br> 
 =============================================================

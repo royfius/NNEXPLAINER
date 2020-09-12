@@ -1,7 +1,16 @@
-# Deep playground
+# NN EXPLAINER
 
-Deep playground is an interactive visualization of neural networks, written in
-TypeScript using d3.js. We use GitHub issues for tracking new requests and bugs.
+NN EXPLAINER is an interactive tutorial/visualization of neural networks, written in TypeScript using d3.js.
+
+Incorporates  a re-purposed implementation of the Tensorflow Playground.  See  https://playground.tensorflow.org.  
+
+It was originally created by Daniel Smilkov and Shan Carter was iteself a continuation of many people’s previous work — most notably Andrej Karpathy’s [convnet.js demo](http://cs.stanford.edu/people/karpathy/convnetjs/demo/classify2d.html) and Chris Olah’s [articles](http://colah.github.io/posts/2014-03-NN-Manifolds-Topology/) about neural networks. 
+
+The Financial Analysis use case was inspired by Google’s “ML with Financial Data” example:  See https://www.youtube.com/watch?v=N422_CYuzZg&feature=youtu.be   
+
+Site incorporates Public Datasets from quandl.com
+
+ We use GitHub issues for tracking new requests and bugs.
 Your feedback is highly appreciated!
 
 # Modifications
@@ -9,10 +18,14 @@ Your feedback is highly appreciated!
 Following capabilities and restrictions are applicable: -
 
  - Only Regression mode is enabled
+ - Regression output from NN is converted into classes (up or down)
+ - Confusion Matrix, Recall and Precision output added
+ - Added a TOUR tab for a quick and dirty tutorial/overview of how the NN works.
  - The application expects the default dataset to be present in form of a CSV file named `Playground_Dataset.csv`
  - This fork includes the ability to load `.csv` datasets. The feature is currently disabled.
  - `.csv` data must be normalized and can have upto 16 attribute columns and one target column.
  - Text templates like header, section, navigation links are fetched from their respective markdown templates present in the `template` folder.
+
 
 # Adding Text Sections and their navigation links
 
@@ -58,6 +71,7 @@ Following capabilities and restrictions are applicable: -
 To run the visualization locally, run:
 - `npm i` to install dependencies
 - `npm run build` to compile the app and place it in the `dist/` directory
+- Move/place a copy of the images folder inside the newly created dist/ directory
 - `npm run serve` to serve from the `dist/` directory and open a page on your browser.
 
 For a fast edit-refresh cycle when developing run `npm run serve-watch`.
